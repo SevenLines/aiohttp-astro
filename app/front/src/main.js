@@ -8,6 +8,18 @@ window.jQuery = window.$ = require('jquery')
 
 Vue.config.productionTip = false
 
+Vue.directive('window-resize', {
+  bind: function (el, binding, vnode) {
+    console.log(this)
+    this.event = function (event) {
+      vnode.context[binding.expression](event)
+    }
+  },
+  unbind: function (el) {
+    window.removeEventListener('resize', this.event)
+  }
+})
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

@@ -66,10 +66,11 @@ class ObjectsPositionView(web.View):
                     await self.ws.send_json({
                         'planets': [{
                             'name': name,
-                            'alt': info.alt,
-                            'az': info.az,
-                            'ra': info.ra,
-                            'dec': info.dec,
+                            'alt': round(info.alt, 2),
+                            'az': round(info.az, 2),
+                            'ra': round(info.ra, 2),
+                            'dec': round(info.dec, 2),
+                            'lon': round(ephem.Ecliptic(info).lon, 2)
                         } for name, info in self.planets.items()]
                     })
             except Exception as exp:

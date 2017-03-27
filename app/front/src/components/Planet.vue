@@ -7,7 +7,7 @@
 <script>
   export default {
     name: 'planet',
-    props: ['alt', 'az', 'ra', 'dec', 'name', 'width', 'circle-width'],
+    props: ['alt', 'az', 'ra', 'dec', 'lon', 'name', 'width', 'circle-width'],
     computed: {
       title () {
         return `${this.name} - alt:${this.alt_deg.toFixed(2)} ra:${this.ra_deg.toFixed(2)} az:${this.az_deg.toFixed(2)}`
@@ -24,12 +24,15 @@
       alt_deg () {
         return this.alt * (180 / Math.PI)
       },
+      lon_deg () {
+        return this.lon * (180 / Math.PI)
+      },
       length () {
         return this.width / 2
       },
       style () {
         return {
-          transform: `translate(-50%, -50%) rotate(${this.ra_deg}deg) translate(${this.length}px, 0)`,
+          transform: `translate(-50%, -50%) rotate(${this.lon_deg}deg) translate(${this.length}px, 0)`,
           width: `${this.circleWidth}px`,
           height: `${this.circleWidth}px`,
           borderRadius: `${this.circleWidth}px`

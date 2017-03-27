@@ -9,6 +9,7 @@
               :az="planet.az"
               :ra="planet.ra"
               :dec="planet.dec"
+              :lon="planet.lon"
               :width="width"
               :circle-width="circleWidth"
               v-bind:key="planet.name"
@@ -20,6 +21,7 @@
               :start="z.start"
               :end="z.end"
               :name="z.name"
+              :icon="z.icon"
               :width="width"
               :circle-width="circleWidth"
               :key="z.name"
@@ -38,19 +40,20 @@
     data () {
       return {
         planets: {},
+        width: 0,
         zodiacs: [
-          {name: 'Aries', start: 0, end: 30},
-          {name: 'Taurus', start: 30, end: 60},
-          {name: 'Gemini', start: 60, end: 90},
-          {name: 'Cancer', start: 90, end: 120},
-          {name: 'Leo', start: 120, end: 150},
-          {name: 'Virgo', start: 150, end: 180},
-          {name: 'Libra', start: 180, end: 210},
-          {name: 'Scorpio', start: 210, end: 240},
-          {name: 'Sagittarius', start: 240, end: 270},
-          {name: 'Capricorn', start: 270, end: 300},
-          {name: 'Aquarius', start: 300, end: 330},
-          {name: 'Pisces', start: 330, end: 360}
+          {name: 'Aries', start: 0, end: 30, icon: '♈'},
+          {name: 'Taurus', start: 30, end: 60, icon: '♉'},
+          {name: 'Gemini', start: 60, end: 90, icon: '♊'},
+          {name: 'Cancer', start: 90, end: 120, icon: '♋'},
+          {name: 'Leo', start: 120, end: 150, icon: '♌'},
+          {name: 'Virgo', start: 150, end: 180, icon: '♍'},
+          {name: 'Libra', start: 180, end: 210, icon: '♎'},
+          {name: 'Scorpio', start: 210, end: 240, icon: '♏'},
+          {name: 'Sagittarius', start: 240, end: 270, icon: '♐'},
+          {name: 'Capricorn', start: 270, end: 300, icon: '♑'},
+          {name: 'Aquarius', start: 300, end: 330, icon: '♒'},
+          {name: 'Pisces', start: 330, end: 360, icon: '♓'}
         ],
         circleWidth: 40
       }
@@ -58,6 +61,9 @@
     components: {Zodiac, Planet},
     mounted () {
       let self = this
+
+      window.addEventListener('resize', this.resize)
+      this.resize()
 
       function setConnection () {
         let server = '127.0.0.1:8081'
@@ -89,10 +95,10 @@
 
       setConnection()
     },
+    beforeDestroy () {
+      window.removeEventListener('resize', this.resize)
+    },
     computed: {
-      width () {
-        return Math.min(window.innerHeight, window.innerWidth) - this.circleWidth * 2 - 20
-      },
       outerStyle () {
         let width = this.width - this.circleWidth * 2
         return {
@@ -108,6 +114,12 @@
           height: `${width}px`,
           borderRadius: `${width}px`
         }
+      }
+    },
+    methods: {
+      resize () {
+        this.width = Math.min(window.innerHeight, window.innerWidth) - this.circleWidth * 2 - 20
+        this.circleWidth = this.width / 20
       }
     }
   }
@@ -127,6 +139,12 @@
     top: 50%;
     border: 2px solid black;
 
+    -webkit-transition: all 0.1s;
+    -moz-transition: all 0.1s;
+    -ms-transition: all 0.1s;
+    -o-transition: all 0.1s;
+    transition: all 0.1s;
+
     -webkit-transform: translate(-50%, -50%);
     -moz-transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
@@ -139,6 +157,12 @@
     left: 50%;
     top: 50%;
     border: 2px solid black;
+
+    -webkit-transition: all 0.1s;
+    -moz-transition: all 0.1s;
+    -ms-transition: all 0.1s;
+    -o-transition: all 0.1s;
+    transition: all 0.1s;
 
     -webkit-transform: translate(-50%, -50%);
     -moz-transform: translate(-50%, -50%);
