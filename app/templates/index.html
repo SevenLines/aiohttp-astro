@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Title</title>
+    <link rel="stylesheet"
+          href="{{ app.router.static.url(filename='font-awesome/css/font-awesome.css') }}">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ app.router.static.url(filename='main.css') }}">
+</head>
+<body>
+
+
+<div class="natal">
+    <div class="inner-circle"></div>
+    <div class="outer-circle"></div>
+    <div id="moon" class="planet"></div>
+    <div id="sun" class="planet"></div>
+    <div id="jupiter" class="planet"></div>
+    <div id="mars" class="planet"></div>
+    <div id="mercury" class="planet"></div>
+    <div id="pluto" class="planet"></div>
+    <div id="neptune" class="planet"></div>
+    <div id="uranus" class="planet"></div>
+    <div id="venus" class="planet"></div>
+    <div id="center"></div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+        integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+        crossorigin="anonymous"></script>
+
+<script>
+    var url = window.location.host + '/ws/positions';
+    function start(url) {
+        var sock;
+        try {
+            sock = new WebSocket('ws://' + url);
+        }
+        catch (err) {
+            sock = new WebSocket('wss://' + url);
+        }
+
+        sock.onopen = function () {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                sock.send(JSON.stringify({
+                    'type': 'set_location',
+                    'data': {
+                        'lat': position.coords.latitude,
+                        'lon': position.coords.longitude
+                    }
+                }));
+            });
+        };
+
+        // income message handler
+        sock.onmessage = function (event) {
+
+            $("#moon_info").find(".alt").html((data.moon.alt * (180 / Math.PI)).toFixed("2"));
+            $("#moon_info").find(".az").html((data.moon.az * (180 / Math.PI)).toFixed("2"));
+            $("#sun_info").find(".alt").html((data.sun.alt * (180 / Math.PI)).toFixed("2"));
+            $("#sun_info").find(".az").html((data.sun.az * (180 / Math.PI)).toFixed("2"));
+
+            Object.keys(data).forEach(function (key) {
+                var transform = 'translate(-50%, -50%) rotate('
+                    + (data[key].az * (180 / Math.PI)).toFixed(2)
+                    + 'deg) translate(300px, 0)';
+                $("#" + key).css({
+                    'transform': transform
+                });
+            });
+
+        };
+
+        sock.onclose = function (event) {
+            setTimeout(function () {
+                start(url)
+            }, 2000)
+        };
+
+        sock.onerror = function (error) {
+
+        };
+    }
+    start(url);
+</script>
+
+</body>
+</html>
