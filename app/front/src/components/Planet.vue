@@ -1,6 +1,7 @@
 <template>
-  <div class="planet" :id="name" :style="style" data-toggle="tooltip" :title="title"
-  ></div>
+  <div class="planet" :id="name" :style="style" data-toggle="tooltip" :title="title">
+    <div class="icon" :style="iconStyle"></div>
+  </div>
 </template>
 
 
@@ -37,6 +38,11 @@
           height: `${this.circleWidth}px`,
           borderRadius: `${this.circleWidth}px`
         }
+      },
+      iconStyle () {
+        return {
+          transform: `translate(-50%, -50%) rotate(${-this.lon_deg}deg)`
+        }
       }
     }
   }
@@ -50,21 +56,34 @@
   }
 
   .planet {
+    cursor: pointer;
     position: absolute;
     left: 50%;
     top: 50%;
 
     display: block;
 
-    background-color: white;
-    border: 1px solid silver;
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 2px silver;
+    font-weight: bold;
 
-    -webkit-transition: all 0.1s;
-    -moz-transition: all 0.1s;
-    -ms-transition: all 0.1s;
-    -o-transition: all 0.1s;
-    transition: all 0.1s;
-    color: white;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    -ms-transition: all 0.3s;
+    -o-transition: all 0.3s;
+    transition: all 0.3s;
+    color: black;
+
+    .icon {
+      font-size: 1.25em;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+    }
+
+    &:hover {
+      z-index: 100;
+    }
 
   }
 
@@ -79,44 +98,57 @@
     border: 1px solid black;
   }
 
-  #moon {
-    background-color: #ffffff;
+  @mixin planet($icon, $color, $fore-color: black) {
+    .icon:before {
+      content: $icon;
+    }
+    background-color: rgba($color, 0.25);
+    &:hover {
+      background-color: $color;
+      color: $fore-color;
+    }
+  }
 
+  #moon {
+    @include planet('☽', silver);
   }
 
   #sun {
-    background-color: #ff0b00;
+    @include planet('☉', #ffc500, red);
   }
 
   #mercury {
-    background-color: #a9ff00;
+    @include planet('☿', #d0ff00, #5a7800);
   }
 
   #venus {
-    background-color: #00a7ff;
+    @include planet('♀', #20e7ff, #a9006c);
   }
 
   #mars {
-    background-color: #ffdd00;
+    @include planet('♂', #ff5b5a, #000000);
   }
 
   #jupiter {
-    background-color: #23f3ff;
+    @include planet('♃', #ff8940, #ad3d00);
   }
 
   #saturn {
-    background-color: #b10fff;
+    @include planet('♄', #be7cf9, #41265d);
   }
 
   #uranus {
-    background-color: #ffffff;
+    @include planet('♅', #7df9ee, #38535d);
   }
 
   #neptune {
-    background-color: #ffffff;
+    @include planet('♆', #5dff5d, #0e5d09);
   }
 
   #pluto {
-    background-color: #ffffff;
+    @include planet('♆', #7c0a00, #ffecf3);
+    .icon:before {
+      content: '♇';
+    }
   }
 </style>

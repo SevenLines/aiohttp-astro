@@ -1,7 +1,23 @@
 <template>
-  <div class="natal">
-    <div class="inner-circle" :style="innerStyle"></div>
-    <div class="outer-circle" :style="outerStyle"></div>
+  <div class="natal" id="natal">
+    <svg width="100%" height="100%">
+      <!--<circle cx="50%" cy="50%" :r="outerStyle.r" stroke="black" stroke-width="2" fill="none" />-->
+      <!--<circle cx="50%" cy="50%" :r="innerStyle.r" stroke="black" stroke-width="2" fill="none" />-->
+      <!--<div class="zodiacs">-->
+      <svg x="50%" y="50%" width="1" height="1" overflow="visible">
+        <zodiac v-for="z in zodiacs"
+                :start="z.start"
+                :end="z.end"
+                :name="z.name"
+                :icon="z.icon"
+                :width="width"
+                :circle-width="circleWidth"
+                :key="z.name"
+        ></zodiac>
+      </svg>
+      <!--</div>-->
+    </svg>
+
     <div class="planets">
       <planet v-for="planet in planets"
               :name="planet.name"
@@ -15,18 +31,6 @@
               v-bind:key="planet.name"
       ></planet>
     </div>
-
-    <div class="zodiacs">
-      <zodiac v-for="z in zodiacs"
-              :start="z.start"
-              :end="z.end"
-              :name="z.name"
-              :icon="z.icon"
-              :width="width"
-              :circle-width="circleWidth"
-              :key="z.name"
-      ></zodiac>
-    </div>
   </div>
 </template>
 
@@ -34,11 +38,13 @@
 <script>
   import Planet from '@/components/Planet'
   import Zodiac from '@/components/Zodiac'
+//  let SVG = require('svg.js')
 
   export default {
     name: 'natal',
     data () {
       return {
+        draw: null,
         planets: {},
         width: 0,
         zodiacs: [
@@ -73,6 +79,7 @@
         sock = new WebSocket('ws://' + url)
         sock.onopen = function () {
           navigator.geolocation.getCurrentPosition(function (position) {
+            console.log(position)
             sock.send(JSON.stringify({
               'type': 'set_location',
               'data': {
@@ -102,17 +109,13 @@
       outerStyle () {
         let width = this.width - this.circleWidth * 2
         return {
-          width: `${width}px`,
-          height: `${width}px`,
-          borderRadius: `${width}px`
+          r: `${width / 2}px`
         }
       },
       innerStyle () {
         let width = this.width + this.circleWidth * 2
         return {
-          width: `${width}px`,
-          height: `${width}px`,
-          borderRadius: `${width}px`
+          r: `${width / 2}px`
         }
       }
     },

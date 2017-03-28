@@ -11,6 +11,8 @@ import astropy.units as u
 from astropy.coordinates import EarthLocation, get_moon, AltAz, get_sun
 from astropy.time import Time
 
+from app import settings
+
 
 class IndexPage(web.View):
     @aiohttp_jinja2.template('index.html')
@@ -31,8 +33,8 @@ class IndexPage(web.View):
 
 class ObjectsPositionView(web.View):
     ws = None
-    lat = None
-    lon = None
+    lat = settings.LAT
+    lon = settings.LON
     active = False
 
     gatech = ephem.Observer()
