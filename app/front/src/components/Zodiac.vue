@@ -1,14 +1,11 @@
 <template>
   <g class="zodiac" :class="name.toLowerCase()">
     <path :d="path"/>
-    <text :font-size="circleWidth / 1.5" dy="circleWidth"
-          text-anchor="middle"
-          dominant-baseline="middle"
+    <text :font-size="circleWidth / 1.5"
           :x="centerP.x * width / 2"
           :y="centerP.y * width / 2">{{icon}}
-
     </text>
-    <path class="sub" :class="name.toLowerCase()" :d="generatePath(small, small-10, start, end)"/>
+    <path class="sub" :class="name.toLowerCase()" :d="generatePie(small, small-10, start, end)"/>
   </g>
 </template>
 
@@ -18,14 +15,14 @@
     name: 'zodiac',
     props: ['start', 'end', 'name', 'width', 'icon', 'circle-width'],
     methods: {
-      generatePath (big, small, startAngle, endAngle) {
+      generatePie (big, small, startAngle, endAngle) {
         let startP = {
-          y: Math.sin(startAngle / 180 * Math.PI),
-          x: Math.cos(startAngle / 180 * Math.PI)
+          y: Math.sin(Math.radians(startAngle)),
+          x: Math.cos(Math.radians(startAngle))
         }
         let endP = {
-          y: Math.sin(endAngle / 180 * Math.PI),
-          x: Math.cos(endAngle / 180 * Math.PI)
+          y: Math.sin(Math.radians(endAngle)),
+          x: Math.cos(Math.radians(endAngle))
         }
         return `M${startP.x * big} ${startP.y * big} ` +
           `A${big} ${big} 0 0 1 ${endP.x * big} ${endP.y * big} ` +
@@ -47,7 +44,7 @@
         return this.width / 2 - this.circleWidth
       },
       path () {
-        return this.generatePath(this.big, this.small, this.start, this.end)
+        return this.generatePie(this.big, this.small, this.start, this.end)
       }
     }
   }
@@ -58,23 +55,28 @@
   @mixin zodiac($name, $color) {
     .#{$name} {
       path {
-        fill: rgba($color, 0.05);
+        fill: rgba($color, 0.25);
       }
       path.sub {
-        fill: rgba($color, 0.1);
+        fill: rgba($color, 0.35);
       }
       &:hover {
         path {
           &.sub {
-            fill: rgba($color, 0.2);
+            fill: rgba($color, 0.65);
           }
-          fill: rgba($color, 0.1);
+          fill: rgba($color, 0.35);
         }
       }
     }
   }
 
   .zodiac {
+    text {
+      color: black;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
     path {
       cursor: pointer;
       -webkit-transition: all 0.3s;
@@ -83,8 +85,8 @@
       -o-transition: all 0.3s;
       transition: all 0.3s;
       fill: white;
-      stroke-width: 1px;
-      stroke: black;
+      stroke-width: 2px;
+      stroke: #ffffff;
     }
 
   }

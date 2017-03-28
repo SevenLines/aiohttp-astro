@@ -1,9 +1,6 @@
 <template>
   <div class="natal" id="natal">
     <svg width="100%" height="100%">
-      <!--<circle cx="50%" cy="50%" :r="outerStyle.r" stroke="black" stroke-width="2" fill="none" />-->
-      <!--<circle cx="50%" cy="50%" :r="innerStyle.r" stroke="black" stroke-width="2" fill="none" />-->
-      <!--<div class="zodiacs">-->
       <svg x="50%" y="50%" width="1" height="1" overflow="visible">
         <zodiac v-for="z in zodiacs"
                 :start="z.start"
@@ -14,8 +11,15 @@
                 :circle-width="circleWidth"
                 :key="z.name"
         ></zodiac>
+        <aspect v-for="a in aspects"
+                :planet1="a.planet1"
+                :planet2="a.planet2"
+                :type="a.type"
+                :width="width"
+                :circleWidth="circleWidth"
+                :key="a.id"
+        ></aspect>
       </svg>
-      <!--</div>-->
     </svg>
 
     <div class="planets">
@@ -31,6 +35,7 @@
               v-bind:key="planet.name"
       ></planet>
     </div>
+
   </div>
 </template>
 
@@ -38,7 +43,7 @@
 <script>
   import Planet from '@/components/Planet'
   import Zodiac from '@/components/Zodiac'
-//  let SVG = require('svg.js')
+  import Aspect from '@/components/Aspect'
 
   export default {
     name: 'natal',
@@ -46,6 +51,7 @@
       return {
         draw: null,
         planets: {},
+        aspects: [],
         width: 0,
         zodiacs: [
           {name: 'Aries', start: 0, end: 30, icon: '♈'},
@@ -64,7 +70,7 @@
         circleWidth: 40
       }
     },
-    components: {Zodiac, Planet},
+    components: {Zodiac, Planet, Aspect},
     mounted () {
       let self = this
 
@@ -79,7 +85,6 @@
         sock = new WebSocket('ws://' + url)
         sock.onopen = function () {
           navigator.geolocation.getCurrentPosition(function (position) {
-            console.log(position)
             sock.send(JSON.stringify({
               'type': 'set_location',
               'data': {
@@ -93,6 +98,7 @@
         sock.onmessage = function (event) {
           let data = JSON.parse(event.data)
           self.planets = data.planets
+          self.generateAspects()
         }
 
         sock.onclose = function () {
@@ -105,23 +111,56 @@
     beforeDestroy () {
       window.removeEventListener('resize', this.resize)
     },
-    computed: {
-      outerStyle () {
-        let width = this.width - this.circleWidth * 2
-        return {
-          r: `${width / 2}px`
+    methods: {
+      generateAspects () {
+        this.aspects = []
+        let id = 0
+        for (let i = 0; i < this.planets.length; ++i) {
+          for (let j = i; j < this.planets.length; ++j) {
+            let planet1 = this.planets[i]
+            let planet2 = this.planets[j]
+            if (planet1 !== planet2) {
+              let angle1 = Math.degrees(planet1.lon)
+              let angle2 = Math.degrees(planet2.lon)
+              let angle = Math.abs(angle1 - angle2)
+              if (angle > 180) {
+                angle = 360 - angle
+              }
+              if (Math.abs(angle - 180) < 5) {
+                this.aspects.push({
+                  type: 'opposition',
+                  id: id++,
+                  planet1: planet1,
+                  planet2: planet2
+                })
+              } else if (Math.abs(angle - 90) < 5) {
+                this.aspects.push({
+                  type: 'square',
+                  id: id++,
+                  planet1: planet1,
+                  planet2: planet2
+                })
+              } else if (Math.abs(angle - 120) < 5) {
+                this.aspects.push({
+                  type: 'trine',
+                  id: id++,
+                  planet1: planet1,
+                  planet2: planet2
+                })
+              } else if (Math.abs(angle) < 5) {
+                this.aspects.push({
+                  type: 'conjunction',
+                  id: id++,
+                  planet1: planet1,
+                  planet2: planet2
+                })
+              }
+            }
+          }
         }
       },
-      innerStyle () {
-        let width = this.width + this.circleWidth * 2
-        return {
-          r: `${width / 2}px`
-        }
-      }
-    },
-    methods: {
       resize () {
-        this.width = Math.min(window.innerHeight, window.innerWidth) - this.circleWidth * 2 - 20
+        this.width = Math.min(window.innerHeight, window.innerWidth) - this.circleWidth * 2 - 40
         this.circleWidth = this.width / 20
       }
     }

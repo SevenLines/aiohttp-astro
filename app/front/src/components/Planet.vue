@@ -11,22 +11,22 @@
     props: ['alt', 'az', 'ra', 'dec', 'lon', 'name', 'width', 'circle-width'],
     computed: {
       title () {
-        return `${this.name} - alt:${this.alt_deg.toFixed(2)} ra:${this.ra_deg.toFixed(2)} az:${this.az_deg.toFixed(2)}`
+        return `${this.name} - lon:${this.lon_deg.toFixed(2)}`
       },
       az_deg () {
-        return this.az * (180 / Math.PI)
+        return Math.degrees(this.az)
       },
       dec_deg () {
-        return this.dec * (180 / Math.PI)
+        return Math.degrees(this.dec)
       },
       ra_deg () {
-        return this.ra * (180 / Math.PI)
+        return Math.degrees(this.ra)
       },
       alt_deg () {
-        return this.alt * (180 / Math.PI)
+        return Math.degrees(this.alt)
       },
       lon_deg () {
-        return this.lon * (180 / Math.PI)
+        return Math.degrees(this.lon)
       },
       length () {
         return this.width / 2
@@ -64,7 +64,8 @@
     display: block;
 
     background-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 2px silver;
+    box-shadow: 0 0 0 2px white;
+    /*border: 2px solid white;*/
     font-weight: bold;
 
     -webkit-transition: all 0.3s;
@@ -102,7 +103,7 @@
     .icon:before {
       content: $icon;
     }
-    background-color: rgba($color, 0.25);
+    background-color: rgba($color, 0.85);
     &:hover {
       background-color: $color;
       color: $fore-color;
@@ -110,7 +111,7 @@
   }
 
   #moon {
-    @include planet('☽', silver);
+    @include planet('☽', #f8f8f8);
   }
 
   #sun {
@@ -146,7 +147,7 @@
   }
 
   #pluto {
-    @include planet('♆', #7c0a00, #ffecf3);
+    @include planet('♆', #f2001f, #000000);
     .icon:before {
       content: '♇';
     }
