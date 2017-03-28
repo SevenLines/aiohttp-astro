@@ -14,8 +14,6 @@ aiohttp_jinja2.setup(app, loader=jinja2.PackageLoader('app'))
 
 for route in routes:
     app.router.add_route(route[0], route[1], route[2], name=route[3])
-app.router.add_static('/static', "/home/m/PycharmProjects/moon/app/static", show_index=True, name="static")
-
 
 app['websockets'] = []
 # app.on_startup.append(compute_positions)

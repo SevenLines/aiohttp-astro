@@ -1,11 +1,14 @@
 <template>
-  <g>
-    <path class="zodiac" :class="name.toLowerCase()" :d="path" />
+  <g class="zodiac" :class="name.toLowerCase()">
+    <path :d="path"/>
     <text :font-size="circleWidth / 1.5" dy="circleWidth"
           text-anchor="middle"
           dominant-baseline="middle"
           :x="centerP.x * width / 2"
-          :y="centerP.y * width / 2">{{icon}}</text>
+          :y="centerP.y * width / 2">{{icon}}
+
+    </text>
+    <path class="sub" :class="name.toLowerCase()" :d="generatePath(small, small-10, start, end)"/>
   </g>
 </template>
 
@@ -14,23 +17,27 @@
   export default {
     name: 'zodiac',
     props: ['start', 'end', 'name', 'width', 'icon', 'circle-width'],
+    methods: {
+      generatePath (big, small, startAngle, endAngle) {
+        let startP = {
+          y: Math.sin(startAngle / 180 * Math.PI),
+          x: Math.cos(startAngle / 180 * Math.PI)
+        }
+        let endP = {
+          y: Math.sin(endAngle / 180 * Math.PI),
+          x: Math.cos(endAngle / 180 * Math.PI)
+        }
+        return `M${startP.x * big} ${startP.y * big} ` +
+          `A${big} ${big} 0 0 1 ${endP.x * big} ${endP.y * big} ` +
+          `L${endP.x * small} ${endP.y * small} ` +
+          `A${small} ${small} 0 0 0 ${startP.x * small} ${startP.y * small}`
+      }
+    },
     computed: {
       centerP () {
         return {
           y: Math.sin((this.start + this.end) / 360 * Math.PI),
           x: Math.cos((this.start + this.end) / 360 * Math.PI)
-        }
-      },
-      startP () {
-        return {
-          y: Math.sin(this.start / 180 * Math.PI),
-          x: Math.cos(this.start / 180 * Math.PI)
-        }
-      },
-      endP () {
-        return {
-          y: Math.sin(this.end / 180 * Math.PI),
-          x: Math.cos(this.end / 180 * Math.PI)
         }
       },
       big () {
@@ -40,10 +47,7 @@
         return this.width / 2 - this.circleWidth
       },
       path () {
-        return `M${this.startP.x * this.big} ${this.startP.y * this.big} ` +
-          `A${this.big} ${this.big} 0 0 1 ${this.endP.x * this.big} ${this.endP.y * this.big} ` +
-          `L${this.endP.x * this.small} ${this.endP.y * this.small} ` +
-          `A${this.small} ${this.small} 0 0 0 ${this.startP.x * this.small} ${this.startP.y * this.small}`
+        return this.generatePath(this.big, this.small, this.start, this.end)
       }
     }
   }
@@ -53,26 +57,36 @@
 <style lang="scss" scoped>
   @mixin zodiac($name, $color) {
     .#{$name} {
-      fill: rgba($color, 0.05);
-      &:hover {
+      path {
+        fill: rgba($color, 0.05);
+      }
+      path.sub {
         fill: rgba($color, 0.1);
+      }
+      &:hover {
+        path {
+          &.sub {
+            fill: rgba($color, 0.2);
+          }
+          fill: rgba($color, 0.1);
+        }
       }
     }
   }
 
   .zodiac {
-    cursor: pointer;
-    -webkit-transition: all 0.3s;
-    -moz-transition: all 0.3s;
-    -ms-transition: all 0.3s;
-    -o-transition: all 0.3s;
-    transition: all 0.3s;
-    fill: white;
-    stroke-width: 1px;
-    stroke: black;
-    &:hover {
-      fill: #e4e4e4;
+    path {
+      cursor: pointer;
+      -webkit-transition: all 0.3s;
+      -moz-transition: all 0.3s;
+      -ms-transition: all 0.3s;
+      -o-transition: all 0.3s;
+      transition: all 0.3s;
+      fill: white;
+      stroke-width: 1px;
+      stroke: black;
     }
+
   }
 
   @include zodiac('aries', #ff0f32)
