@@ -5,6 +5,8 @@
 </template>
 
 <script>
+  import 'bootstrap/dist/css/bootstrap.css'
+
   export default {
     name: 'app'
   }
@@ -25,6 +27,7 @@
 
 <style lang="scss">
   @import "assets/main.scss";
+  /*@import "../node_modules/bootstrap/dist/css/bootstrap.css";*/
 
   #app {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -32,4 +35,9 @@
     -moz-osx-font-smoothing: grayscale;
     height: 100%;
   }
+
+  svg:not(:root) {
+    overflow: visible !important;
+  }
+
 </style>

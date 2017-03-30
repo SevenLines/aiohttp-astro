@@ -85,23 +85,23 @@
       -o-transition: all 0.3s;
       transition: all 0.3s;
       fill: white;
-      stroke-width: 2px;
+      stroke-width: 4px;
       stroke: #ffffff;
     }
 
   }
 
   @include zodiac('aries', #ff0f32)
-  @include zodiac('taurus', #76eb20)
+  @include zodiac('taurus', #eb5c00)
   @include zodiac('gemini', #ffaa00)
-  @include zodiac('cancer', #4dffd5)
-  @include zodiac('leo', #ffe900)
-  @include zodiac('virgo', #00d2ff)
-  @include zodiac('libra', #ff0092)
-  @include zodiac('scorpio', #c3001a)
-  @include zodiac('sagittarius', #ff0087)
-  @include zodiac('capricorn', #004bff)
-  @include zodiac('aquarius', #ff00f3)
-  @include zodiac('pisces', #388dff)
+  @include zodiac('cancer', #ffed00)
+  @include zodiac('leo', #caff00)
+  @include zodiac('virgo', #29ff00)
+  @include zodiac('libra', #00ffa1)
+  @include zodiac('scorpio', #0098c3)
+  @include zodiac('sagittarius', #0068ff)
+  @include zodiac('capricorn', #6e00ff)
+  @include zodiac('aquarius', #cb00ff)
+  @include zodiac('pisces', #ff00de)
 
 </style>

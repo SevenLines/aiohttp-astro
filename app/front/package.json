@@ -13,10 +13,14 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
+    "@google/maps": "^0.3.1",
     "bootstrap": "^4.0.0-alpha.6",
     "font-awesome": "^4.7.0",
     "fs": "0.0.1-security",
+    "google-maps": "^3.2.1",
     "gulp-watch": "^4.3.11",
+    "js-cookie": "^2.1.3",
+    "lodash": "^4.17.4",
     "node-sass": "^4.5.1",
     "node-sass-loader": "^0.1.7",
     "sass-loader": "^6.0.3",

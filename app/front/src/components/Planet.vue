@@ -1,6 +1,7 @@
 <template>
   <div class="planet" :id="name" :style="style" data-toggle="tooltip" :title="title">
     <div class="icon" :style="iconStyle"></div>
+    <div class="degree" :style="{transform: `rotate(${-this.lon_deg.toFixed()}deg)`}">{{(lon_deg % 31).toFixed(0)}}°</div>
   </div>
 </template>
 
@@ -80,6 +81,16 @@
       position: absolute;
       left: 50%;
       top: 50%;
+    }
+
+    .degree {
+      position: absolute;
+      right: -0.75em;
+      top: -0.5em;
+      background-color: white;
+      border-radius: 1.5em;
+      padding: 0.3em;
+        font-size: 0.75em;
     }
 
     &:hover {

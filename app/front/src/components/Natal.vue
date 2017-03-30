@@ -1,41 +1,56 @@
 <template>
-  <div class="natal" id="natal">
-    <svg width="100%" height="100%">
-      <svg x="50%" y="50%" width="1" height="1" overflow="visible">
-        <zodiac v-for="z in zodiacs"
-                :start="z.start"
-                :end="z.end"
-                :name="z.name"
-                :icon="z.icon"
-                :width="width"
-                :circle-width="circleWidth"
-                :key="z.name"
-        ></zodiac>
-        <aspect v-for="a in aspects"
-                :planet1="a.planet1"
-                :planet2="a.planet2"
-                :type="a.type"
-                :width="width"
-                :circleWidth="circleWidth"
-                :key="a.id"
-        ></aspect>
-      </svg>
-    </svg>
+  <div class="row" style="height: 100%">
+    <div class="col">
+      <div class="natal" id="natal">
+        <svg width="100%" height="100%">
+          <svg x="50%" y="50%" width="1" height="1" overflow="visible">
+            <zodiac v-for="(z, index) in zodiacs"
+                    :start="z.start"
+                    :end="z.end"
+                    :name="z.name"
+                    :icon="z.icon"
+                    :width="width"
+                    :circle-width="circleWidth"
+                    :key="z.name"
+            ></zodiac>
+            <aspect v-for="(a, index) in aspects"
+                    :planet1="a.planet1"
+                    :planet2="a.planet2"
+                    :type="a.type"
+                    :width="width"
+                    :circleWidth="circleWidth"
+                    :key="a.id"
+                    @aspectHover="onAspectHover(index)"
+            ></aspect>
+          </svg>
+        </svg>
 
-    <div class="planets">
-      <planet v-for="planet in planets"
-              :name="planet.name"
-              :alt="planet.alt"
-              :az="planet.az"
-              :ra="planet.ra"
-              :dec="planet.dec"
-              :lon="planet.lon"
-              :width="width"
-              :circle-width="circleWidth"
-              v-bind:key="planet.name"
-      ></planet>
+        <div class="planets">
+          <planet v-for="planet in planets"
+                  :name="planet.name"
+                  :alt="planet.alt"
+                  :az="planet.az"
+                  :ra="planet.ra"
+                  :dec="planet.dec"
+                  :lon="planet.lon"
+                  :width="width"
+                  :circle-width="circleWidth"
+                  v-bind:key="planet.name"
+          ></planet>
+        </div>
+
+      </div>
     </div>
-
+    <!--<div class="col">-->
+    <!--<div class="location-editor">-->
+    <!--<div class="buttons">-->
+    <!--<button class="btn btn-primary">RESET</button>-->
+    <!--</div>-->
+    <!--<div class="map-wrapper">-->
+    <!--<div id="map"></div>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
   </div>
 </template>
 
@@ -50,6 +65,12 @@
     data () {
       return {
         draw: null,
+        map: null,
+        location: require('js-cookie').get('location'),
+        locationMarker: null,
+        activeAspectId: null,
+        activeAspect: null,
+        socket: null,
         planets: {},
         aspects: [],
         width: 0,
@@ -71,6 +92,11 @@
       }
     },
     components: {Zodiac, Planet, Aspect},
+    watch: {
+      location: function () {
+        this.updateMapLocation()
+      }
+    },
     mounted () {
       let self = this
 
@@ -81,31 +107,32 @@
         let server = '127.0.0.1:8081'
         let url = server + '/ws/positions/'
 
-        let sock
-        sock = new WebSocket('ws://' + url)
-        sock.onopen = function () {
-          navigator.geolocation.getCurrentPosition(function (position) {
-            sock.send(JSON.stringify({
-              'type': 'set_location',
-              'data': {
-                'lat': position.coords.latitude,
-                'lon': position.coords.longitude
-              }
-            }))
-          })
+        self.socket = new WebSocket('ws://' + url)
+        self.socket.onopen = function () {
+          if (!(self.location && self.location.longitude)) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+              self.location = position.coords
+              self.updateMapLocation()
+              self.sendSetLocationSocket(position.coords.latitude, position.coords.longitude)
+            })
+          } else {
+            self.updateMapLocation()
+            self.sendSetLocationSocket(self.location.latitude, self.location.longitude)
+          }
         }
 
-        sock.onmessage = function (event) {
+        self.socket.onmessage = function (event) {
           let data = JSON.parse(event.data)
           self.planets = data.planets
           self.generateAspects()
         }
 
-        sock.onclose = function () {
+        self.socket.onclose = function () {
           setTimeout(setConnection, 1000)
         }
       }
 
+//      self.initMap()
       setConnection()
     },
     beforeDestroy () {
@@ -113,54 +140,120 @@
     },
     methods: {
       generateAspects () {
-        this.aspects = []
-        let id = 0
+        let self = this
+        this.aspects.length = 0
+
         for (let i = 0; i < this.planets.length; ++i) {
           for (let j = i; j < this.planets.length; ++j) {
             let planet1 = this.planets[i]
             let planet2 = this.planets[j]
-            if (planet1 !== planet2) {
-              let angle1 = Math.degrees(planet1.lon)
-              let angle2 = Math.degrees(planet2.lon)
-              let angle = Math.abs(angle1 - angle2)
-              if (angle > 180) {
-                angle = 360 - angle
+            let aspect = null
+            let angle1 = Math.degrees(planet1.lon)
+            let angle2 = Math.degrees(planet2.lon)
+            let angle = Math.abs(angle1 - angle2)
+            if (angle > 180) {
+              angle = 360 - angle
+            }
+
+            if (Math.abs(angle - 180) < 5) {
+              aspect = {
+                type: 'opposition'
               }
-              if (Math.abs(angle - 180) < 5) {
-                this.aspects.push({
-                  type: 'opposition',
-                  id: id++,
-                  planet1: planet1,
-                  planet2: planet2
-                })
-              } else if (Math.abs(angle - 90) < 5) {
-                this.aspects.push({
-                  type: 'square',
-                  id: id++,
-                  planet1: planet1,
-                  planet2: planet2
-                })
-              } else if (Math.abs(angle - 120) < 5) {
-                this.aspects.push({
-                  type: 'trine',
-                  id: id++,
-                  planet1: planet1,
-                  planet2: planet2
-                })
-              } else if (Math.abs(angle) < 5) {
-                this.aspects.push({
-                  type: 'conjunction',
-                  id: id++,
-                  planet1: planet1,
-                  planet2: planet2
-                })
+            } else if (Math.abs(angle - 60) < 5) {
+              aspect = {
+                type: 'sextile'
               }
+            } else if (Math.abs(angle - 90) < 5) {
+              aspect = {
+                type: 'square'
+              }
+            } else if (Math.abs(angle - 120) < 5) {
+              aspect = {
+                type: 'trine'
+              }
+            } else if (Math.abs(angle) < 5) {
+              aspect = {
+                type: 'conjunction'
+              }
+            }
+
+            if (aspect) {
+              aspect.planet1 = planet1
+              aspect.planet2 = planet2
+              aspect.id = `${planet1.name}-${planet2.name}`
+              this.aspects.push(aspect)
             }
           }
         }
+
+        this.aspects.sort((a) => {
+          if (a.id === self.activeAspectId) {
+            return 1
+          }
+          return 0
+        })
+      },
+      initMap () {
+        let GoogleMapsLoader = require('google-maps') // only for common js environments
+        let self = this
+        GoogleMapsLoader.KEY = 'AIzaSyBel-jfT8hor4c7vzA6ItUFRNIQI-SS1kU'
+
+        GoogleMapsLoader.load(function (google) {
+          global.google = google
+          self.map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 8
+          })
+
+          self.locationMarker = new google.maps.Marker({
+            title: ''
+          })
+
+          self.map.addListener('click', function (e) {
+            self.locationMarker.setPosition(e.latLng)
+            self.map.panTo(e.latLng)
+            self.sendSetLocationSocket(e.latLng.latitude, e.latLng.longitude)
+          })
+
+          self.updateMapLocation()
+        })
+      },
+      updateMapLocation () {
+        console.log(this.location)
+        if (this.map && this.location) {
+          let coord = new global.google.maps.LatLng(
+            this.location.latitude,
+            this.location.longitude
+          )
+
+          this.map.setCenter(coord)
+          this.locationMarker.setPosition(coord)
+          this.locationMarker.setMap(this.map)
+        }
+      },
+      sendSetLocationSocket (latitude, longitude) {
+        require('js-cookie').set('location', {
+          latitude: latitude,
+          longitude: longitude
+        })
+        if (this.socket) {
+          this.socket.send(JSON.stringify({
+            'type': 'set_location',
+            'data': {
+              'lat': latitude,
+              'lon': longitude
+            }
+          }))
+        }
+      },
+      onAspectHover (index) {
+        this.activeAspectId = this.aspects[index].id
+        this.activeAspect = this.aspects[index]
+        this.aspects.push(this.aspects.splice(index, 1)[0])
       },
       resize () {
-        this.width = Math.min(window.innerHeight, window.innerWidth) - this.circleWidth * 2 - 40
+        let natal = document.querySelector('.natal')
+        this.width = Math.min(natal.offsetWidth, natal.offsetHeight) - this.circleWidth * 2 - 40
         this.circleWidth = this.width / 20
       }
     }
@@ -175,49 +268,27 @@
     border-radius: $width;
   }
 
-  .inner-circle {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    border: 2px solid black;
-
-    -webkit-transition: all 0.1s;
-    -moz-transition: all 0.1s;
-    -ms-transition: all 0.1s;
-    -o-transition: all 0.1s;
-    transition: all 0.1s;
-
-    -webkit-transform: translate(-50%, -50%);
-    -moz-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    -o-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-  }
-
-  .outer-circle {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    border: 2px solid black;
-
-    -webkit-transition: all 0.1s;
-    -moz-transition: all 0.1s;
-    -ms-transition: all 0.1s;
-    -o-transition: all 0.1s;
-    transition: all 0.1s;
-
-    -webkit-transform: translate(-50%, -50%);
-    -moz-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    -o-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-  }
-
   .natal {
     left: 50%;
     top: 50%;
     height: 100%;
     width: 100%;
+    /*height: 100%;*/
+  }
+
+  #map {
+    height: 500px;
+    width: 100%;
+  }
+
+  .location-editor {
+    padding: 1em;
+    height: 100%;
+    .map-wrapper {
+    }
+    .buttons {
+      margin-bottom: 1em;
+    }
   }
 
 
