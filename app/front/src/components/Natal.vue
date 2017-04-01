@@ -105,7 +105,8 @@
       this.resize()
 
       function setConnection () {
-        let server = '127.0.0.1:8081'
+        console.log(process)
+        let server = process.env.HOST
         let url = server + '/ws/positions/'
 
         self.socket = new WebSocket('ws://' + url)
