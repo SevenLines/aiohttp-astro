@@ -1,12 +1,8 @@
 <template>
   <div class="planet" :id="name" :style="style" data-toggle="tooltip" :title="title">
     <div class="icon" :style="iconStyle"></div>
-    <div class="degree" :style="{transform: `rotate(${-this.lon_deg.toFixed()}deg)`}">
-      {{(lon_deg % 30).toFixed(0)}}°
-    </div>
-    <div class="reverse" :style="{transform: `rotate(${-this.lon_deg.toFixed()}deg)`}"
-         v-if="reverse">r
-    </div>
+    <div class="degree" :style="degreeStyle">{{(lon_deg % 30).toFixed(0)}}°</div>
+    <div class="reverse" :style="degreeStyle" v-if="reverse">r</div>
   </div>
 </template>
 
@@ -36,6 +32,12 @@
       },
       length () {
         return this.width / 2
+      },
+      degreeStyle () {
+        return {
+          transform: `rotate(${-this.lon_deg.toFixed()}deg)`,
+          fontSize: `${this.circleWidth / 3}px`
+        }
       },
       style () {
         return {
@@ -99,11 +101,10 @@
     }
 
     .reverse {
-      width: 20px;
-      height: 20px;
       position: absolute;
       right: -0.75em;
       bottom: -0.5em;
+      padding: 0 0.5em;
       background-color: #ff0053;
       border-radius: 1.5em;
       text-align: center;
