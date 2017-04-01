@@ -42,16 +42,16 @@ class ObjectsPositionView(web.View):
     def __init__(self, request):
         super().__init__(request)
         self.planets = {
-            'moon': ephem.Moon(),
-            'sun': ephem.Sun(),
-            'mars': ephem.Mars(),
-            'jupiter': ephem.Jupiter(),
-            'saturn': ephem.Saturn(),
-            'mercury': ephem.Mercury(),
-            'pluto': ephem.Pluto(),
-            'neptune': ephem.Neptune(),
-            'uranus': ephem.Uranus(),
-            'venus': ephem.Venus(),
+            'moon': {'ephem': ephem.Moon(), 'last_ecliptic': None, 'ecliptic': None},
+            'sun': {'ephem': ephem.Sun(), 'last_ecliptic': None, 'ecliptic': None},
+            'mars': {'ephem': ephem.Mars(), 'last_ecliptic': None, 'ecliptic': None},
+            'jupiter': {'ephem': ephem.Jupiter(), 'last_ecliptic': None, 'ecliptic': None},
+            'saturn': {'ephem': ephem.Saturn(), 'last_ecliptic': None, 'ecliptic': None},
+            'mercury': {'ephem': ephem.Mercury(), 'last_ecliptic': None, 'ecliptic': None},
+            'pluto': {'ephem': ephem.Pluto(), 'last_ecliptic': None, 'ecliptic': None},
+            'neptune': {'ephem': ephem.Neptune(), 'last_ecliptic': None, 'ecliptic': None},
+            'uranus': {'ephem': ephem.Uranus(), 'last_ecliptic': None, 'ecliptic': None},
+            'venus': {'ephem': ephem.Venus(), 'last_ecliptic': None, 'ecliptic': None},
         }
 
     async def compute_positions(self):
@@ -63,18 +63,26 @@ class ObjectsPositionView(web.View):
                     self.gatech.date = datetime.utcnow()
 
                     for planet, info in self.planets.items():
-                        info.compute(self.gatech)
+                        info['ephem'].compute(self.gatech)
+                        info['ecliptic'] = ephem.Ecliptic(info['ephem'])
+                        info['reverse'] = info['ecliptic'].lon - info['last_ecliptic'].lon < 0 \
+                            if info['last_ecliptic'] else False
 
                     await self.ws.send_json({
                         'planets': [{
                             'name': name,
-                            'alt': round(info.alt, 2),
-                            'az': round(info.az, 2),
-                            'ra': round(info.ra, 2),
-                            'dec': round(info.dec, 2),
-                            'lon': round(ephem.Ecliptic(info).lon, 2)
+                            'alt': round(info['ephem'].alt, 2),
+                            'az': round(info['ephem'].az, 2),
+                            'ra': round(info['ephem'].ra, 2),
+                            'dec': round(info['ephem'].dec, 2),
+                            'lon': round(info['ecliptic'].lon, 2),
+                            'reverse': info['reverse']
                         } for name, info in self.planets.items()]
                     })
+
+                    for planet, info in self.planets.items():
+                        info['last_ecliptic'] = info['ecliptic']
+
             except Exception as exp:
                 print(exp)
             await sleep(2)

@@ -1,7 +1,12 @@
 <template>
   <div class="planet" :id="name" :style="style" data-toggle="tooltip" :title="title">
     <div class="icon" :style="iconStyle"></div>
-    <div class="degree" :style="{transform: `rotate(${-this.lon_deg.toFixed()}deg)`}">{{(lon_deg % 31).toFixed(0)}}°</div>
+    <div class="degree" :style="{transform: `rotate(${-this.lon_deg.toFixed()}deg)`}">
+      {{(lon_deg % 30).toFixed(0)}}°
+    </div>
+    <div class="reverse" :style="{transform: `rotate(${-this.lon_deg.toFixed()}deg)`}"
+         v-if="reverse">r
+    </div>
   </div>
 </template>
 
@@ -9,7 +14,7 @@
 <script>
   export default {
     name: 'planet',
-    props: ['alt', 'az', 'ra', 'dec', 'lon', 'name', 'width', 'circle-width'],
+    props: ['alt', 'az', 'ra', 'dec', 'lon', 'name', 'width', 'circle-width', 'reverse'],
     computed: {
       title () {
         return `${this.name} - lon:${this.lon_deg.toFixed(2)}`
@@ -91,6 +96,18 @@
       border-radius: 1.5em;
       padding: 0.3em;
         font-size: 0.75em;
+    }
+
+    .reverse {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      right: -0.75em;
+      bottom: -0.5em;
+      background-color: #ff0053;
+      border-radius: 1.5em;
+      text-align: center;
+      font-size: 0.75em;
     }
 
     &:hover {

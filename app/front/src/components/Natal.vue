@@ -33,6 +33,7 @@
                   :ra="planet.ra"
                   :dec="planet.dec"
                   :lon="planet.lon"
+                  :reverse="planet.reverse"
                   :width="width"
                   :circle-width="circleWidth"
                   v-bind:key="planet.name"
