@@ -18,5 +18,5 @@ def deploy():
                 with cd('app/front'):
                     run('npm install')
                     run('npm run build')
-                run('kill -HUP /tmp/astro.pid')
+                run('kill -HUP `cat /tmp/astro.pid`')
 
