@@ -1,0 +1,17 @@
+[Unit]
+Description=astrodate
+Requires=nginx.service
+
+[Service]
+PIDFile=/tmp/astro.pid
+User=light
+Group=www-data
+RuntimeDirectory=gunicorn
+WorkingDirectory=/home/light/projects/aiohttp-astro
+ExecStart=/home/light/.virtualenvs/astro/bin/gunicorn -c gunicorn_conf_prod.py --reload app.app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
