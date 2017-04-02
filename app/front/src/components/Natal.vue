@@ -106,7 +106,7 @@
 
       function setConnection () {
         console.log(process)
-        let server = process.env.HOST || window.location.host
+        let server = process.env.HOST
         let url = server + '/ws/positions/'
 
         self.socket = new WebSocket('ws://' + url)
