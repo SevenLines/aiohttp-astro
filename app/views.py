@@ -1,3 +1,4 @@
+import traceback
 from asyncio.tasks import sleep
 from datetime import datetime, timedelta
 
@@ -37,12 +38,15 @@ class ObjectsPositionView(web.View):
     lon = settings.LON
     active = False
 
-    gatech = ephem.Observer()
-
     def __init__(self, request):
         super().__init__(request)
+        self.gatech = ephem.Observer()
         self.planets = {
-            'moon': {'ephem': ephem.Moon(), 'last_ecliptic': None, 'ecliptic': None},
+            'moon': {'ephem': ephem.Moon(), 'last_ecliptic': None, 'ecliptic': None, 'day': {
+                'number': '',
+                'start': None,
+                'end': None,
+            }},
             'sun': {'ephem': ephem.Sun(), 'last_ecliptic': None, 'ecliptic': None},
             'mars': {'ephem': ephem.Mars(), 'last_ecliptic': None, 'ecliptic': None},
             'jupiter': {'ephem': ephem.Jupiter(), 'last_ecliptic': None, 'ecliptic': None},
@@ -54,20 +58,53 @@ class ObjectsPositionView(web.View):
             'venus': {'ephem': ephem.Venus(), 'last_ecliptic': None, 'ecliptic': None},
         }
 
+    async def calculate_moon_day(self, info):
+        if self.lon and self.lat:
+            moon = ephem.Moon()
+            obs = ephem.Observer()
+            obs.lat = str(self.lat)
+            obs.lon = str(self.lon)
+            obs.date = self.gatech.date
+
+            date_start = ephem.previous_new_moon(obs.date)
+            date_next_new_moon = ephem.next_new_moon(obs.date)
+
+            last_day = date_start
+            for i in range(1, 30):
+                obs.date = last_day
+                day_end = obs.next_rising(moon, last_day, True)
+                if last_day <= self.gatech.date <= day_end:
+                    info['day']['number'] = i
+                    info['day']['start'] = '{:%Y-%m-%d %H:%M:%S}'.format(last_day.datetime())
+                    info['day']['end'] = '{:%Y-%m-%d %H:%M:%S}'.format(day_end.datetime())
+                    break
+                last_day = day_end
+
+    async def calculate_planet(self, info):
+        info['ephem'].compute(self.gatech)
+        info['ecliptic'] = ephem.Ecliptic(info['ephem'])
+        info['reverse'] = info['ecliptic'].lon - info['last_ecliptic'].lon < 0 \
+            if info['last_ecliptic'] else False
+
+    async def update_positions(self):
+        self.gatech.lon = str(self.lon)
+        self.gatech.lat = str(self.lat)
+        self.gatech.date = datetime.utcnow()
+
+        for planet, info in self.planets.items():
+            await self.calculate_planet(info)
+
+        # if self.planets['moon']['day']['start'] is None:
+        self.calculate_moon_day(self.planets['moon'])
+
+        for planet, info in self.planets.items():
+            info['last_ecliptic'] = info['ecliptic']
+
     async def compute_positions(self):
         if self.ws and not self.ws.closed:
             try:
                 if self.lon and self.lat:
-                    self.gatech.lon = str(self.lon)
-                    self.gatech.lat = str(self.lat)
-                    self.gatech.date = datetime.utcnow()
-
-                    for planet, info in self.planets.items():
-                        info['ephem'].compute(self.gatech)
-                        info['ecliptic'] = ephem.Ecliptic(info['ephem'])
-                        info['reverse'] = info['ecliptic'].lon - info['last_ecliptic'].lon < 0 \
-                            if info['last_ecliptic'] else False
-
+                    await self.update_positions()
                     await self.ws.send_json({
                         'planets': [{
                             'name': name,
@@ -76,21 +113,19 @@ class ObjectsPositionView(web.View):
                             'ra': round(info['ephem'].ra, 2),
                             'dec': round(info['ephem'].dec, 2),
                             'lon': round(info['ecliptic'].lon, 2),
+                            'day': info.get('day', None),
                             'reverse': info['reverse']
                         } for name, info in self.planets.items()]
                     })
-
-                    for planet, info in self.planets.items():
-                        info['last_ecliptic'] = info['ecliptic']
-
             except Exception as exp:
-                print(exp)
+                traceback.print_exc()
             await sleep(5)
             asyncio.ensure_future(self.compute_positions())
 
     async def set_location(self, lat, lon):
         self.lat = lat
         self.lon = lon
+        await self.calculate_moon_day(self.planets['moon'])
 
     async def get(self):
         self.ws = web.WebSocketResponse()

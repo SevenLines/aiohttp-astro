@@ -1,5 +1,4 @@
 from fabric.api import run, env, cd, prefix, settings
-from fabric.operations import local
 
 env.hosts = ['83.220.170.91']
 env.user = 'light'

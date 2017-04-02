@@ -35,6 +35,7 @@
                   :lon="planet.lon"
                   :reverse="planet.reverse"
                   :width="width"
+                  :day="planet.day"
                   :circle-width="circleWidth"
                   v-bind:key="planet.name"
           ></planet>

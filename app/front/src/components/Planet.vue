@@ -3,6 +3,7 @@
     <div class="icon" :style="iconStyle"></div>
     <div class="degree" :style="degreeStyle">{{(lon_deg % 30).toFixed(0)}}°</div>
     <div class="reverse" :style="degreeStyle" v-if="reverse">r</div>
+    <div class="day" :style="degreeStyle" v-if="day" data-toggle="tooltip" :title="`${day.start} - ${day.end}`">{{day.number}}d</div>
   </div>
 </template>
 
@@ -10,7 +11,18 @@
 <script>
   export default {
     name: 'planet',
-    props: ['alt', 'az', 'ra', 'dec', 'lon', 'name', 'width', 'circle-width', 'reverse'],
+    props: [
+      'alt',
+      'az',
+      'ra',
+      'dec',
+      'lon',
+      'name',
+      'width',
+      'circle-width',
+      'reverse',
+      'day'
+    ],
     computed: {
       title () {
         return `${this.name} - lon:${this.lon_deg.toFixed(2)}`
@@ -35,7 +47,7 @@
       },
       degreeStyle () {
         return {
-          transform: `rotate(${-this.lon_deg.toFixed()}deg)`,
+          transform: `rotate(${-this.lon_deg}deg)`,
           fontSize: `${this.circleWidth / 3}px`
         }
       },
@@ -95,6 +107,16 @@
       right: -0.75em;
       top: -0.5em;
       background-color: white;
+      border-radius: 1.5em;
+      padding: 0.3em;
+        font-size: 0.75em;
+    }
+
+    .day {
+      position: absolute;
+      left: -0.75em;
+      top: -0.5em;
+      background-color: #ffba00;
       border-radius: 1.5em;
       padding: 0.3em;
         font-size: 0.75em;
