@@ -1,7 +1,7 @@
 <template>
   <div class="planet" :id="name" :style="style" data-toggle="tooltip" :title="title">
     <div class="icon" :style="iconStyle"></div>
-    <div class="degree" :style="degreeStyle">{{(lon_deg % 30).toFixed(0)}}°</div>
+    <div class="degree" :style="degreeStyle">{{(lon_deg % 30).toFixed()}}°</div>
     <div class="reverse" :style="degreeStyle" v-if="reverse">r</div>
     <div class="day" :style="degreeStyle" v-if="day" data-toggle="tooltip" :title="`${day.start} - ${day.end}`">{{day.number}}d</div>
   </div>
@@ -53,7 +53,7 @@
       },
       style () {
         return {
-          transform: `translate(-50%, -50%) rotate(${this.lon_deg}deg) translate(${this.length}px, 0)`,
+          transform: `translate(-50%, -50%) rotate(${this.lon_deg.toFixed(2)}deg) translate(${this.length}px, 0)`,
           width: `${this.circleWidth}px`,
           height: `${this.circleWidth}px`,
           borderRadius: `${this.circleWidth}px`

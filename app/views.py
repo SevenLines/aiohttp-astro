@@ -13,6 +13,8 @@ from astropy.coordinates import EarthLocation, get_moon, AltAz, get_sun
 from astropy.time import Time
 
 from app import settings
+from app import planets
+from app.planets import Planet
 
 
 class IndexPage(web.View):
@@ -40,65 +42,30 @@ class ObjectsPositionView(web.View):
 
     def __init__(self, request):
         super().__init__(request)
-        self.gatech = ephem.Observer()
+        self.observer = ephem.Observer()
         self.planets = {
-            'moon': {'ephem': ephem.Moon(), 'last_ecliptic': None, 'ecliptic': None, 'day': {
-                'number': '',
-                'start': None,
-                'end': None,
-            }},
-            'sun': {'ephem': ephem.Sun(), 'last_ecliptic': None, 'ecliptic': None},
-            'mars': {'ephem': ephem.Mars(), 'last_ecliptic': None, 'ecliptic': None},
-            'jupiter': {'ephem': ephem.Jupiter(), 'last_ecliptic': None, 'ecliptic': None},
-            'saturn': {'ephem': ephem.Saturn(), 'last_ecliptic': None, 'ecliptic': None},
-            'mercury': {'ephem': ephem.Mercury(), 'last_ecliptic': None, 'ecliptic': None},
-            'pluto': {'ephem': ephem.Pluto(), 'last_ecliptic': None, 'ecliptic': None},
-            'neptune': {'ephem': ephem.Neptune(), 'last_ecliptic': None, 'ecliptic': None},
-            'uranus': {'ephem': ephem.Uranus(), 'last_ecliptic': None, 'ecliptic': None},
-            'venus': {'ephem': ephem.Venus(), 'last_ecliptic': None, 'ecliptic': None},
+            'moon': planets.Moon(),
+            'sun': planets.Sun(),
+            'mars': planets.Mars(),
+            'jupiter': planets.Jupiter(),
+            'saturn': planets.Saturn(),
+            'mercury': planets.Mercury(),
+            'pluto': planets.Pluto(),
+            'neptune': planets.Neptune(),
+            'uranus': planets.Uranus(),
+            'venus': planets.Venus(),
         }
 
-    async def calculate_moon_day(self, info):
-        if self.lon and self.lat:
-            moon = ephem.Moon()
-            obs = ephem.Observer()
-            obs.lat = str(self.lat)
-            obs.lon = str(self.lon)
-            obs.date = self.gatech.date
-
-            date_start = ephem.previous_new_moon(obs.date)
-            date_next_new_moon = ephem.next_new_moon(obs.date)
-
-            last_day = date_start
-            for i in range(1, 30):
-                obs.date = last_day
-                day_end = obs.next_rising(moon, last_day, True)
-                if last_day <= self.gatech.date <= day_end:
-                    info['day']['number'] = i
-                    info['day']['start'] = '{:%Y-%m-%d %H:%M:%S}'.format(last_day.datetime())
-                    info['day']['end'] = '{:%Y-%m-%d %H:%M:%S}'.format(day_end.datetime())
-                    break
-                last_day = day_end
-
-    async def calculate_planet(self, info):
-        info['ephem'].compute(self.gatech)
-        info['ecliptic'] = ephem.Ecliptic(info['ephem'])
-        info['reverse'] = info['ecliptic'].lon - info['last_ecliptic'].lon < 0 \
-            if info['last_ecliptic'] else False
+    async def calculate_planet(self, planet: Planet):
+        planet.compute(self.observer)
 
     async def update_positions(self):
-        self.gatech.lon = str(self.lon)
-        self.gatech.lat = str(self.lat)
-        self.gatech.date = datetime.utcnow()
+        self.observer.lon = str(self.lon)
+        self.observer.lat = str(self.lat)
+        self.observer.date = datetime.utcnow()
 
-        for planet, info in self.planets.items():
-            await self.calculate_planet(info)
-
-        # if self.planets['moon']['day']['start'] is None:
-        self.calculate_moon_day(self.planets['moon'])
-
-        for planet, info in self.planets.items():
-            info['last_ecliptic'] = info['ecliptic']
+        for planet, planet in self.planets.items():
+            await self.calculate_planet(planet)
 
     async def compute_positions(self):
         if self.ws and not self.ws.closed:
@@ -106,16 +73,7 @@ class ObjectsPositionView(web.View):
                 if self.lon and self.lat:
                     await self.update_positions()
                     await self.ws.send_json({
-                        'planets': [{
-                            'name': name,
-                            'alt': round(info['ephem'].alt, 2),
-                            'az': round(info['ephem'].az, 2),
-                            'ra': round(info['ephem'].ra, 2),
-                            'dec': round(info['ephem'].dec, 2),
-                            'lon': round(info['ecliptic'].lon, 2),
-                            'day': info.get('day', None),
-                            'reverse': info['reverse']
-                        } for name, info in self.planets.items()]
+                        'planets': [planet.to_dict() for name, planet in self.planets.items()]
                     })
             except Exception as exp:
                 traceback.print_exc()
@@ -125,7 +83,6 @@ class ObjectsPositionView(web.View):
     async def set_location(self, lat, lon):
         self.lat = lat
         self.lon = lon
-        await self.calculate_moon_day(self.planets['moon'])
 
     async def get(self):
         self.ws = web.WebSocketResponse()
@@ -147,7 +104,7 @@ class ObjectsPositionView(web.View):
                         if data['type'] == 'set_location':
                             await self.set_location(**data['data'])
                     except Exception as ex:
-                        print(ex)
+                        traceback.print_exc()
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print('ws connection closed with exception %s' % self.ws.exception())
             else:
