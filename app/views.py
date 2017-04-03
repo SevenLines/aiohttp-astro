@@ -1,37 +1,16 @@
+import asyncio
+import json
 import traceback
 from asyncio.tasks import sleep
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import aiohttp
-import aiohttp_jinja2
 import ephem
 from aiohttp import web
-import json
-import asyncio
-import astropy.units as u
-from astropy.coordinates import EarthLocation, get_moon, AltAz, get_sun
-from astropy.time import Time
 
-from app import settings
 from app import planets
+from app import settings
 from app.planets import Planet
-
-
-class IndexPage(web.View):
-    @aiohttp_jinja2.template('index.html')
-    async def get(self):
-        tm = Time(datetime.now()) - 8 * u.hour
-        location = EarthLocation(lat=52 * u.deg, lon=104 * u.deg)
-
-        moon = get_moon(tm, location)
-        moon_altaz = moon.transform_to(AltAz(obstime=tm, location=location))
-        sun = get_sun(tm)
-        sun_altaz = sun.transform_to(AltAz(obstime=tm, location=location))
-
-        return {
-            'moon_altaz': moon_altaz,
-            'sun_altaz': sun_altaz,
-        }
 
 
 class ObjectsPositionView(web.View):
@@ -75,7 +54,7 @@ class ObjectsPositionView(web.View):
                     await self.ws.send_json({
                         'planets': [planet.to_dict() for name, planet in self.planets.items()]
                     })
-            except Exception as exp:
+            except Exception:
                 traceback.print_exc()
             await sleep(5)
             asyncio.ensure_future(self.compute_positions())
