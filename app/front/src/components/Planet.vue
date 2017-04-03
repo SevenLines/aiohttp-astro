@@ -167,6 +167,15 @@
 
   #sun {
     @include planet('☉', #ffc500, red);
+    .day {
+      background-color: #ff7100;
+      color: black;
+    }
+    &:hover {
+      .day {
+        color: black;
+      }
+    }
   }
 
   #mercury {
