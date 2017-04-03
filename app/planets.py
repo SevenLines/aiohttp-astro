@@ -1,6 +1,7 @@
 import traceback
 
 import ephem
+from datetime import date, datetime
 from ephem import Observer
 
 
@@ -46,7 +47,44 @@ class Planet(object):
 
 
 class Sun(Planet):
-    pass
+    day_info = None
+
+    def __init__(self):
+        super().__init__()
+        self.day_info = {
+            'number': None,
+            'month_number': None,
+            'start': None,
+            'end': None,
+        }
+
+    def compute(self, observer):
+        super().compute(observer)
+
+        try:
+            obs = observer.copy()
+            # find last spring equinox
+            date_start = ephem.previous_spring_equinox(obs.date)
+            obs.date = date_start
+
+            # get start of first new day
+            date_start = obs.next_rising(self.ephem)
+
+            diff_days = (datetime.utcnow() - date_start.datetime()).days
+            day = diff_days % 30 + 1
+            month = diff_days // 30 + 1
+
+            obs.date = datetime.utcnow()
+
+            self.day_info['number'] = day
+            self.day_info['month_number'] = month
+            self.day_info['start'] = obs.previous_rising(self.ephem)
+            self.day_info['end'] = obs.next_rising(self.ephem)
+        except Exception as exc:
+            traceback.print_exc()
+
+    def get_day(self):
+        return self.day_info
 
 
 class Moon(Planet):

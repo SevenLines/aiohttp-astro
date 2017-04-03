@@ -43,17 +43,17 @@
         return Math.degrees(this.lon)
       },
       length () {
-        return this.width / 2
+        return this.width / 2 - this.circleWidth
       },
       degreeStyle () {
         return {
-          transform: `rotate(${-this.lon_deg}deg)`,
+          transform: `rotate(${this.lon_deg}deg)`,
           fontSize: `${this.circleWidth / 3}px`
         }
       },
       style () {
         return {
-          transform: `translate(-50%, -50%) rotate(${this.lon_deg.toFixed(2)}deg) translate(${this.length}px, 0)`,
+          transform: `translate(-50%, -50%) rotate(${-this.lon_deg.toFixed(2)}deg) translate(${this.length}px, 0)`,
           width: `${this.circleWidth}px`,
           height: `${this.circleWidth}px`,
           borderRadius: `${this.circleWidth}px`
@@ -61,7 +61,7 @@
       },
       iconStyle () {
         return {
-          transform: `translate(-50%, -50%) rotate(${-this.lon_deg}deg)`
+          transform: `translate(-50%, -50%) rotate(${this.lon_deg}deg)`
         }
       }
     }

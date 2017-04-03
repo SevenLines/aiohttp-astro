@@ -40,15 +40,15 @@
       start () {
         let angle = Math.degrees(this.planet1.lon)
         return {
-          x: Math.cos(Math.radians(angle)) * this.length,
-          y: Math.sin(Math.radians(angle)) * this.length
+          x: Math.cos(Math.radians(-angle)) * this.length,
+          y: Math.sin(Math.radians(-angle)) * this.length
         }
       },
       end () {
         let angle = Math.degrees(this.planet2.lon)
         return {
-          x: Math.cos(Math.radians(angle)) * this.length,
-          y: Math.sin(Math.radians(angle)) * this.length
+          x: Math.cos(Math.radians(-angle)) * this.length,
+          y: Math.sin(Math.radians(-angle)) * this.length
         }
       },
       path () {

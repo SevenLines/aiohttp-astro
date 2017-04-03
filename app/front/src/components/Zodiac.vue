@@ -17,24 +17,24 @@
     methods: {
       generatePie (big, small, startAngle, endAngle) {
         let startP = {
-          y: Math.sin(Math.radians(startAngle)),
-          x: Math.cos(Math.radians(startAngle))
+          y: Math.sin(Math.radians(-startAngle)),
+          x: Math.cos(Math.radians(-startAngle))
         }
         let endP = {
-          y: Math.sin(Math.radians(endAngle)),
-          x: Math.cos(Math.radians(endAngle))
+          y: Math.sin(Math.radians(-endAngle)),
+          x: Math.cos(Math.radians(-endAngle))
         }
         return `M${startP.x * big} ${startP.y * big} ` +
-          `A${big} ${big} 0 0 1 ${endP.x * big} ${endP.y * big} ` +
+          `A${big} ${big} 0 0 0 ${endP.x * big} ${endP.y * big} ` +
           `L${endP.x * small} ${endP.y * small} ` +
-          `A${small} ${small} 0 0 0 ${startP.x * small} ${startP.y * small}`
+          `A${small} ${small} 0 0 1 ${startP.x * small} ${startP.y * small}`
       }
     },
     computed: {
       centerP () {
         return {
-          y: Math.sin((this.start + this.end) / 360 * Math.PI),
-          x: Math.cos((this.start + this.end) / 360 * Math.PI)
+          y: Math.sin(-(this.start + this.end) / 360 * Math.PI),
+          x: Math.cos(-(this.start + this.end) / 360 * Math.PI)
         }
       },
       big () {

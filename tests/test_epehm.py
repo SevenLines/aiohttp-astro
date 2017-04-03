@@ -1,3 +1,7 @@
+import ephem
+import pytest
+
+from app.planets import Sun
 from app.views import ObjectsPositionView
 
 #
@@ -34,15 +38,37 @@ from app.views import ObjectsPositionView
 #             last_day = day_end
 #
 #         moon.compute(obs)
-#         print(moon)
+# #         print(moon)
+#
+# @pytest.fixture
+# def observer():
+#     obs = ephem.Observer()
+#     obs.lat = '52.26312730000001'
+#     obs.lon = '104.3399244'
+#     return obs
+#
+#
+# async def test_compute_moon(test_client):
+#     view = ObjectsPositionView(None)
+#     await view.set_location('52.26312730000001', '104.3399244')
+#
+#
+# async def test_computation(test_client):
+#     view = ObjectsPositionView(None)
+#     await view.set_location(52.26312730000001, 104.3399244)
+#     await view.update_positions()
 
 
-async def test_compute_moon(test_client):
-    view = ObjectsPositionView(None)
-    await view.set_location('52.26312730000001', '104.3399244')
+@pytest.fixture
+def observer():
+    obs = ephem.Observer()
+    obs.lat = '52.26312730000001'
+    obs.lon = '104.3399244'
+    return obs
 
 
-async def test_computation(test_client):
-    view = ObjectsPositionView(None)
-    await view.set_location(52.26312730000001, 104.3399244)
-    await view.update_positions()
+def test_sun_day(observer):
+    planet = Sun()
+    planet.compute(observer)
+
+
