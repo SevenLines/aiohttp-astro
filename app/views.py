@@ -10,6 +10,7 @@ from aiohttp import web
 
 from app import planets
 from app import settings
+from app.helpers import DateTimeEncoder
 from app.planets import Planet
 
 
@@ -51,9 +52,10 @@ class ObjectsPositionView(web.View):
             try:
                 if self.lon and self.lat:
                     await self.update_positions()
-                    await self.ws.send_json({
+                    msg = json.dumps({
                         'planets': [planet.to_dict() for name, planet in self.planets.items()]
-                    })
+                    }, cls=DateTimeEncoder)
+                    await self.ws.send_str(msg)
             except Exception:
                 traceback.print_exc()
             await sleep(5)

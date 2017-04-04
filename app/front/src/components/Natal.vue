@@ -61,6 +61,8 @@
   import Planet from '@/components/Planet'
   import Zodiac from '@/components/Zodiac'
   import Aspect from '@/components/Aspect'
+  import moment from 'moment-timezone'
+  moment.locale()
 
   export default {
     name: 'natal',
@@ -127,6 +129,13 @@
         self.socket.onmessage = function (event) {
           let data = JSON.parse(event.data)
           self.planets = data.planets
+          self.planets.forEach(item => {
+            if (item.day !== null) {
+              item.day.start = moment(item.day.start)
+              item.day.end = moment(item.day.end)
+            }
+            return item
+          })
           self.generateAspects()
         }
 

@@ -3,12 +3,13 @@
     <div class="icon" :style="iconStyle"></div>
     <div class="degree" :style="degreeStyle">{{(lon_deg % 30).toFixed()}}°</div>
     <div class="reverse" :style="degreeStyle" v-if="reverse">r</div>
-    <div class="day" :style="degreeStyle" v-if="day" data-toggle="tooltip" :title="`${day.start} - ${day.end}`">{{day.number}}d</div>
+    <div class="day" :style="degreeStyle" v-if="day" data-toggle="tooltip" :title="dayTitle">{{day.number}}d</div>
   </div>
 </template>
 
 
 <script>
+
   export default {
     name: 'planet',
     props: [
@@ -24,6 +25,9 @@
       'day'
     ],
     computed: {
+      dayTitle () {
+        return `${this.day.start.format('lll')} - ${this.day.end.format('lll')}`
+      },
       title () {
         return `${this.name} - lon:${this.lon_deg.toFixed(2)}`
       },

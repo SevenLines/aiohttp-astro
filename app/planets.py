@@ -78,8 +78,8 @@ class Sun(Planet):
 
             self.day_info['number'] = day
             self.day_info['month_number'] = month
-            self.day_info['start'] = obs.previous_rising(self.ephem)
-            self.day_info['end'] = obs.next_rising(self.ephem)
+            self.day_info['start'] = obs.previous_rising(self.ephem).datetime()
+            self.day_info['end'] = obs.next_rising(self.ephem).datetime()
         except Exception as exc:
             traceback.print_exc()
 
@@ -114,8 +114,8 @@ class Moon(Planet):
                 day_end = obs.next_rising(self.ephem, last_day, True)
                 if last_day <= dt <= day_end:
                     self.day_info['number'] = i
-                    self.day_info['start'] = '{:%Y-%m-%d %H:%M:%S}'.format(last_day.datetime())
-                    self.day_info['end'] = '{:%Y-%m-%d %H:%M:%S}'.format(day_end.datetime())
+                    self.day_info['start'] = last_day.datetime()
+                    self.day_info['end'] = day_end.datetime()
                     break
                 last_day = day_end
         except Exception as exc:
