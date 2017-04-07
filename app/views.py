@@ -54,7 +54,8 @@ class ObjectsPositionView(web.View):
                 if self.lon and self.lat:
                     await self.update_positions()
                     msg = json.dumps({
-                        'planets': [planet.to_dict() for name, planet in self.planets.items()]
+                        'planets': [planet.to_dict() for name, planet in self.planets.items()],
+                        'sever_time': self.observer.date.datetime().utcnow().isoformat()
                     }, cls=DateTimeEncoder)
                     await self.ws.send_str(msg)
             except Exception:

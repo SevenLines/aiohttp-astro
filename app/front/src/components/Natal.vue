@@ -43,16 +43,17 @@
 
       </div>
     </div>
-    <!--<div class="col">-->
-    <!--<div class="location-editor">-->
-    <!--<div class="buttons">-->
-    <!--<button class="btn btn-primary">RESET</button>-->
-    <!--</div>-->
-    <!--<div class="map-wrapper">-->
-    <!--<div id="map"></div>-->
-    <!--</div>-->
-    <!--</div>-->
-    <!--</div>-->
+    <div class="col">
+      <div class="location-editor">
+        <h2><small>Время: </small>{{ realTime.format('LTS') }}</h2>
+        <!--<div class="buttons">-->
+          <!--<button class="btn btn-primary">RESET</button>-->
+        <!--</div>-->
+        <div class="map-wrapper">
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -62,7 +63,7 @@
   import Zodiac from '@/components/Zodiac'
   import Aspect from '@/components/Aspect'
   import moment from 'moment-timezone'
-  moment.locale()
+  moment.locale(navigator.language)
 
   export default {
     name: 'natal',
@@ -77,6 +78,8 @@
         socket: null,
         planets: {},
         aspects: [],
+        serverTime: moment(new Date()),
+        serverTimeOffset: 0,
         width: 0,
         zodiacs: [
           {name: 'Aries', start: 0, end: 30, icon: '♈'},
@@ -101,6 +104,12 @@
         this.updateMapLocation()
       }
     },
+    computed: {
+      realTime () {
+        this.serverTimeOffset // для синхронизации
+        return this.serverTime
+      }
+    },
     mounted () {
       let self = this
 
@@ -108,7 +117,6 @@
       this.resize()
 
       function setConnection () {
-        console.log(process)
         let server = process.env.HOST
         let url = server + '/ws/positions/'
 
@@ -129,6 +137,8 @@
         self.socket.onmessage = function (event) {
           let data = JSON.parse(event.data)
           self.planets = data.planets
+          self.serverTime = moment(data.server_time)
+          self.serverTimeOffset = 0
           self.planets.forEach(item => {
             if (item.day !== null) {
               item.day.start = moment(item.day.start)
@@ -144,6 +154,9 @@
         }
       }
 
+      // launch timer
+      self.doTheTime()
+
 //      self.initMap()
       setConnection()
     },
@@ -151,6 +164,13 @@
       window.removeEventListener('resize', this.resize)
     },
     methods: {
+      doTheTime () {
+        this.serverTimeOffset += 1
+        this.serverTime.add(1, 'seconds')
+        setTimeout(() => {
+          this.doTheTime()
+        }, 1000, this)
+      },
       generateAspects () {
         let self = this
         this.aspects.length = 0
@@ -231,7 +251,6 @@
         })
       },
       updateMapLocation () {
-        console.log(this.location)
         if (this.map && this.location) {
           let coord = new global.google.maps.LatLng(
             this.location.latitude,
@@ -283,9 +302,14 @@
   .natal {
     left: 50%;
     top: 50%;
-    height: 100%;
+    height: 90%;
     width: 100%;
     /*height: 100%;*/
+  }
+
+  .row {
+    margin-left: 0;
+    margin-right: 0;
   }
 
   #map {
