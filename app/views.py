@@ -57,10 +57,11 @@ class ObjectsPositionView(web.View):
                         'planets': [planet.to_dict() for name, planet in self.planets.items()],
                         'sever_time': self.observer.date.datetime().utcnow().isoformat()
                     }, cls=DateTimeEncoder)
+
                     await self.ws.send_str(msg)
             except Exception:
                 traceback.print_exc()
-            await sleep(5)
+            await sleep(1)
             asyncio.ensure_future(self.compute_positions())
 
     async def set_location(self, lat, lon):

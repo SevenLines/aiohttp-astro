@@ -1,5 +1,5 @@
 <template>
-  <div class="planet" :id="name" :style="style" data-toggle="tooltip" :title="title">
+  <div class="planet" :class="{active: isActive}" @click="$emit('click')" :id="name" :style="style" data-toggle="tooltip" :title="title">
     <div class="icon" :style="iconStyle"></div>
     <div class="degree" :style="degreeStyle">{{(lon_deg % 30).toFixed()}}°</div>
     <div class="reverse" :style="degreeStyle" v-if="reverse">r</div>
@@ -22,7 +22,8 @@
       'width',
       'circle-width',
       'reverse',
-      'day'
+      'day',
+      'is-active'
     ],
     computed: {
       dayTitle () {
@@ -87,6 +88,10 @@
 
     display: block;
 
+    &.active {
+      box-shadow: 0 0 0 6px #ffbe00;
+    }
+
     background-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 0 0 2px white;
     /*border: 2px solid white;*/
@@ -137,7 +142,7 @@
       font-size: 0.75em;
     }
 
-    &:hover {
+    &:hover, &.active {
       z-index: 100;
     }
 

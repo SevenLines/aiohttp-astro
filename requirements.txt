@@ -4,3 +4,4 @@ aiohttp==2.0.2
 aiohttp_jinja2
 pytest
 pytest-aiohttp
+freezegun==0.3.8

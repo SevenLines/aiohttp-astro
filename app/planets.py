@@ -13,13 +13,15 @@ class Planet(object):
     last_ecliptic = None
     ecliptic = None
     is_reverse = False
+    update_speed = 0
+
+    _current_update_value = 0
 
     def __init__(self):
         if self.name is None:
             self.name = self.get_name()
         if self.ephem is None:
             self.ephem = self.get_ephem()
-        # self.ecliptic = ephem.Ecliptic(self.ephem)
 
     def get_name(self):
         return self.name or self.__class__.__name__.lower()
@@ -28,10 +30,14 @@ class Planet(object):
         return self.ephem or getattr(ephem, self.name.capitalize())()
 
     def compute(self, observer: Observer, force=False):
-        self.ephem.compute(observer)
-        self.ecliptic = ephem.Ecliptic(self.ephem)
-        self.is_reverse = self.ecliptic.lon - self.last_ecliptic.lon < 0 if self.last_ecliptic else False
-        self.last_ecliptic = self.ecliptic
+        if self._current_update_value <= 0:
+            self._current_update_value = self.update_speed
+            self.ephem.compute(observer)
+            self.ecliptic = ephem.Ecliptic(self.ephem)
+            self.is_reverse = self.ecliptic.lon - self.last_ecliptic.lon < 0 if self.last_ecliptic else False
+            self.last_ecliptic = self.ecliptic
+        else:
+            self._current_update_value -= 1
 
     def get_day(self):
         return None
@@ -159,32 +165,40 @@ class Moon(Planet):
 
 
 class Mars(Planet):
+    update_speed = 4
     pass
 
 
 class Jupiter(Planet):
+    update_speed = 4
     pass
 
 
 class Saturn(Planet):
+    update_speed = 4
     pass
 
 
 class Mercury(Planet):
+    update_speed = 4
     pass
 
 
 class Pluto(Planet):
+    update_speed = 4
     pass
 
 
 class Neptune(Planet):
+    update_speed = 4
     pass
 
 
 class Uranus(Planet):
+    update_speed = 4
     pass
 
 
 class Venus(Planet):
+    update_speed = 4
     pass

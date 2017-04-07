@@ -1,5 +1,6 @@
 import ephem
 import pytest
+from ephem import Observer
 
 from app.planets import Sun
 from app.views import ObjectsPositionView
@@ -71,4 +72,9 @@ def test_sun_day(observer):
     planet = Sun()
     planet.compute(observer)
 
+
+def test_asc_coordinate(observer: Observer):
+    asc = ephem.Equatorial(0, 0)
+    asc.compute(observer)
+    print (asc.az)
 

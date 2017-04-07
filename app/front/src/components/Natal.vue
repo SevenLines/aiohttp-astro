@@ -37,6 +37,8 @@
                   :width="width"
                   :day="planet.day"
                   :circle-width="circleWidth"
+                  :is-active="planet === activePlanet"
+                  @click="onPlanetClick(planet, $event)"
                   v-bind:key="planet.name"
           ></planet>
         </div>
@@ -46,6 +48,17 @@
     <div class="col">
       <div class="location-editor">
         <h2><small>Время: </small>{{ realTime.format('LTS') }}</h2>
+        <hr>
+        <div v-if="activePlanet">
+          <h3>{{activePlanet.name}}</h3>
+          <ul>
+            <li>longitude: {{activePlanet.lon}}</li>
+            <li>latitutde: {{activePlanet.az}}</li>
+            <li>azimuth: {{activePlanet.az}}</li>
+            <li>ra: {{activePlanet.az}}</li>
+            <li>dec: {{activePlanet.az}}</li>
+          </ul>
+        </div>
         <!--<div class="buttons">-->
           <!--<button class="btn btn-primary">RESET</button>-->
         <!--</div>-->
@@ -63,6 +76,7 @@
   import Zodiac from '@/components/Zodiac'
   import Aspect from '@/components/Aspect'
   import moment from 'moment-timezone'
+  import _ from 'lodash'
   moment.locale(navigator.language)
 
   export default {
@@ -77,6 +91,7 @@
         activeAspect: null,
         socket: null,
         planets: {},
+        activePlanetIndex: null,
         aspects: [],
         serverTime: moment(new Date()),
         serverTimeOffset: 0,
@@ -108,6 +123,9 @@
       realTime () {
         this.serverTimeOffset // для синхронизации
         return this.serverTime
+      },
+      activePlanet () {
+        return this.planets[this.activePlanetIndex]
       }
     },
     mounted () {
@@ -164,6 +182,11 @@
       window.removeEventListener('resize', this.resize)
     },
     methods: {
+      onPlanetClick (planet, $event) {
+        this.activePlanetIndex = _.findIndex(this.planets, (item) => {
+          return item.name === planet.name
+        })
+      },
       doTheTime () {
         this.serverTimeOffset += 1
         this.serverTime.add(1, 'seconds')
