@@ -1,7 +1,9 @@
 import traceback
 
 import ephem
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+
+import math
 from ephem import Observer
 
 
@@ -17,6 +19,7 @@ class Planet(object):
             self.name = self.get_name()
         if self.ephem is None:
             self.ephem = self.get_ephem()
+        # self.ecliptic = ephem.Ecliptic(self.ephem)
 
     def get_name(self):
         return self.name or self.__class__.__name__.lower()
@@ -24,7 +27,7 @@ class Planet(object):
     def get_ephem(self):
         return self.ephem or getattr(ephem, self.name.capitalize())()
 
-    def compute(self, observer):
+    def compute(self, observer: Observer, force=False):
         self.ephem.compute(observer)
         self.ecliptic = ephem.Ecliptic(self.ephem)
         self.is_reverse = self.ecliptic.lon - self.last_ecliptic.lon < 0 if self.last_ecliptic else False
@@ -58,8 +61,8 @@ class Sun(Planet):
             'end': None,
         }
 
-    def compute(self, observer):
-        super().compute(observer)
+    def compute(self, observer, **kwargs):
+        super().compute(observer, **kwargs)
 
         try:
             obs = observer.copy()
@@ -89,6 +92,7 @@ class Sun(Planet):
 
 class Moon(Planet):
     day_info = None
+    use_twelve_algorithm = False  # использовать 12 градусный алгоритм рассчета дня
 
     def __init__(self):
         super().__init__()
@@ -98,15 +102,19 @@ class Moon(Planet):
             'end': None,
         }
 
-    def compute(self, observer: Observer):
-        super(Moon, self).compute(observer)
-
-        try:
+    def update_day_info_simple(self, observer: Observer, force=False):
+        # calculate day only if we outside of previously computed period
+        if not force and self.day_info['start'] and self.day_info['end'] \
+                and self.day_info['start'] < observer.date.datetime() < self.day_info['end']:
+            pass
+        else:
             obs = observer.copy()
             dt = observer.date
 
             date_start = ephem.previous_new_moon(obs.date)
             date_next_new_moon = ephem.next_new_moon(obs.date)
+            self.day_info['next_new_moon'] = date_next_new_moon.datetime()
+            self.day_info['current_time'] = dt.datetime()
 
             last_day = date_start
             for i in range(1, 30):
@@ -118,6 +126,31 @@ class Moon(Planet):
                     self.day_info['end'] = day_end.datetime()
                     break
                 last_day = day_end
+
+    def update_day_info_twelve(self, observer: Observer):
+        obs = observer.copy()
+        dt = observer.date
+
+        sun = ephem.Sun()
+        sun.compute(observer)
+        sun_ecliptic = ephem.Ecliptic(sun)
+
+        if self.ecliptic.lon > sun_ecliptic.lon:
+            degress = math.degrees(self.ecliptic.lon - sun_ecliptic.lon)
+        else:
+            degress = 360 - math.degrees(sun_ecliptic.lon - self.ecliptic.lon)
+
+        self.day_info['number'] = degress // 12 + 1
+
+    def compute(self, observer: Observer, **kwargs):
+        super(Moon, self).compute(observer, **kwargs)
+        force = kwargs.get('force', False)
+
+        try:
+            if self.use_twelve_algorithm:
+                self.update_day_info_twelve(observer)
+            else:
+                self.update_day_info_simple(observer, force)
         except Exception as exc:
             traceback.print_exc()
 

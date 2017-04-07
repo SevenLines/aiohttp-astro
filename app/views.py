@@ -19,6 +19,7 @@ class ObjectsPositionView(web.View):
     lat = settings.LAT
     lon = settings.LON
     active = False
+    force_next_update = False
 
     def __init__(self, request):
         super().__init__(request)
@@ -36,8 +37,8 @@ class ObjectsPositionView(web.View):
             'venus': planets.Venus(),
         }
 
-    async def calculate_planet(self, planet: Planet):
-        planet.compute(self.observer)
+    async def calculate_planet(self, planet: Planet, force: bool = False):
+        planet.compute(self.observer, force=force)
 
     async def update_positions(self):
         self.observer.lon = str(self.lon)
@@ -45,7 +46,7 @@ class ObjectsPositionView(web.View):
         self.observer.date = datetime.utcnow()
 
         for planet, planet in self.planets.items():
-            await self.calculate_planet(planet)
+            await self.calculate_planet(planet, self.force_next_update)
 
     async def compute_positions(self):
         if self.ws and not self.ws.closed:
@@ -64,34 +65,34 @@ class ObjectsPositionView(web.View):
     async def set_location(self, lat, lon):
         self.lat = lat
         self.lon = lon
+        self.force_next_update = True
 
     async def get(self):
         self.ws = web.WebSocketResponse()
-        await self.ws.prepare(self.request)
+        try:
+            await self.ws.prepare(self.request)
 
-        print('websocket connection opened')
-        self.request.app['websockets'].append(self.ws)
+            self.request.app['websockets'].append(self.ws)
 
-        asyncio.ensure_future(self.compute_positions())
+            asyncio.ensure_future(self.compute_positions())
 
-        async for msg in self.ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                if msg.data == 'close':
-                    await self.ws.close()
+            async for msg in self.ws:
+                if msg.type == aiohttp.WSMsgType.TEXT:
+                    if msg.data == 'close':
+                        await self.ws.close()
+                    else:
+                        try:
+                            data = json.loads(msg.data)
+                            print(data)
+                            if data['type'] == 'set_location':
+                                await self.set_location(**data['data'])
+                        except Exception as ex:
+                            traceback.print_exc()
+                elif msg.type == aiohttp.WSMsgType.ERROR:
+                    print('ws connection closed with exception %s' % self.ws.exception())
                 else:
-                    try:
-                        data = json.loads(msg.data)
-                        print(data)
-                        if data['type'] == 'set_location':
-                            await self.set_location(**data['data'])
-                    except Exception as ex:
-                        traceback.print_exc()
-            elif msg.type == aiohttp.WSMsgType.ERROR:
-                print('ws connection closed with exception %s' % self.ws.exception())
-            else:
-                pass
-
-        self.request.app['websockets'].remove(self.ws)
-        print('websocket connection closed')
+                    pass
+        finally:
+            self.request.app['websockets'].remove(self.ws)
 
         return self.ws
