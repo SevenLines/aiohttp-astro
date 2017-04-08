@@ -62,7 +62,7 @@ class ObjectsPositionView(web.View):
                     await self.ws.send_str(msg)
             except Exception:
                 traceback.print_exc()
-            await sleep(1)
+            await sleep(3)
             asyncio.ensure_future(self.compute_positions())
 
     async def set_location(self, lat, lon):
