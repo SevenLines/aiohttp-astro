@@ -49,6 +49,7 @@ class Planet(object):
             'az': self.ephem.az,
             'ra': self.ephem.ra,
             'dec': self.ephem.dec,
+            'lat': self.ecliptic.lat,
             'lon': self.ecliptic.lon,
             'day': self.get_day(),
             'reverse': self.is_reverse,
