@@ -5,6 +5,7 @@
       <li>longitude: {{lon.deg}}&deg;{{lon.min}}&prime;{{lon.sec}}&Prime;</li>
       <li>latitutde: {{lat.deg}}&deg;{{lat.min}}&prime;{{lat.sec}}&Prime;</li>
       <li>azimuth: {{az.deg}}&deg;{{az.min}}&prime;{{az.sec}}&Prime;</li>
+      <li>altitude: {{alt.deg}}&deg;{{alt.min}}&prime;{{alt.sec}}&Prime;</li>
       <li>ra: {{ra.deg}}&deg;{{ra.min}}&prime;{{ra.sec}}&Prime;</li>
       <li>dec: {{dec.deg}}&deg;{{dec.min}}&prime;{{dec.sec}}&Prime;</li>
     </ul>
@@ -26,6 +27,9 @@
       },
       az () {
         return helpers.ConvertDDToDMS(this.activePlanet.az)
+      },
+      alt () {
+        return helpers.ConvertDDToDMS(this.activePlanet.alt)
       },
       ra () {
         return helpers.ConvertDDToDMS(this.activePlanet.ra)

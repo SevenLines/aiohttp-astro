@@ -68,6 +68,17 @@ def observer():
     return obs
 
 
+@pytest.fixture
+def view():
+    v = ObjectsPositionView(None)
+    return v
+
+
+async def test_profile_computation(view: ObjectsPositionView):
+    for _ in range(1000):
+        await view.update_positions()
+
+
 def test_sun_day(observer):
     planet = Sun()
     planet.compute(observer)

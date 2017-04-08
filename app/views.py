@@ -45,7 +45,7 @@ class ObjectsPositionView(web.View):
         self.observer.lat = str(self.lat)
         self.observer.date = datetime.utcnow()
 
-        for planet, planet in self.planets.items():
+        for name, planet in self.planets.items():
             await self.calculate_planet(planet, self.force_next_update)
 
     async def compute_positions(self):
@@ -53,9 +53,10 @@ class ObjectsPositionView(web.View):
             try:
                 if self.lon and self.lat:
                     await self.update_positions()
+                    server_time = self.observer.date.datetime().utcnow().isoformat()
                     msg = json.dumps({
                         'planets': [planet.to_dict() for name, planet in self.planets.items()],
-                        'sever_time': self.observer.date.datetime().utcnow().isoformat()
+                        'server_time': server_time
                     }, cls=DateTimeEncoder)
 
                     await self.ws.send_str(msg)

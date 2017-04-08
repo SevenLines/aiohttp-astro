@@ -68,10 +68,13 @@ class Sun(Planet):
             'end': None,
         }
 
-    def compute(self, observer, **kwargs):
+    def compute(self, observer, force=False, **kwargs):
         super().compute(observer, **kwargs)
 
-        try:
+        if not force and self.day_info['start'] and self.day_info['end'] \
+                and self.day_info['start'] < observer.date.datetime() < self.day_info['end']:
+            pass
+        else:
             obs = observer.copy()
             # find last spring equinox
             date_start = ephem.previous_spring_equinox(obs.date)
@@ -90,8 +93,6 @@ class Sun(Planet):
             self.day_info['month_number'] = month
             self.day_info['start'] = obs.previous_rising(self.ephem).datetime()
             self.day_info['end'] = obs.next_rising(self.ephem).datetime()
-        except Exception as exc:
-            traceback.print_exc()
 
     def get_day(self):
         return self.day_info
@@ -117,6 +118,8 @@ class Moon(Planet):
         else:
             obs = observer.copy()
             dt = observer.date
+
+            print((self.day_info['start'], observer.date.datetime(),self.day_info['end']))
 
             date_start = ephem.previous_new_moon(obs.date)
             date_next_new_moon = ephem.next_new_moon(obs.date)
