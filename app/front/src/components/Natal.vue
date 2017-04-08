@@ -167,9 +167,6 @@
         }
       }
 
-      // launch timer
-      self.doTheTime()
-
 //      self.initMap()
       setConnection()
     },
@@ -179,13 +176,6 @@
     methods: {
       onPlanetClick (planet, $event) {
         this.activePlanetName = planet.name
-      },
-      doTheTime () {
-        this.serverTimeOffset += 1
-        this.serverTime.add(1, 'seconds')
-        setTimeout(() => {
-          this.doTheTime()
-        }, 1000, this)
       },
       generateAspects () {
         let self = this
