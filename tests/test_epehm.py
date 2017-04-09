@@ -1,7 +1,10 @@
+import json
+
 import ephem
 import pytest
 from ephem import Observer
 
+from app.helpers import DateTimeEncoder
 from app.planets import Sun
 from app.views import ObjectsPositionView
 
@@ -75,8 +78,13 @@ def view():
 
 
 async def test_profile_computation(view: ObjectsPositionView):
-    for _ in range(1000):
+    for _ in range(10000):
         await view.update_positions()
+        server_time = view.observer.date.datetime().utcnow().isoformat()
+        msg = json.dumps({
+            'planets': [planet.to_dict() for name, planet in view.planets.items()],
+            'server_time': server_time
+        }, cls=DateTimeEncoder)
 
 
 def test_sun_day(observer):

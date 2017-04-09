@@ -150,7 +150,7 @@
         self.socket.onmessage = function (event) {
           let data = JSON.parse(event.data)
           self.planets = data.planets
-          self.serverTime = moment(data.server_time)
+          self.serverTime = moment(moment.utc(data.server_time).toDate())
           self.serverTimeOffset = 0
           self.planets.forEach(item => {
             if (item.day !== null) {

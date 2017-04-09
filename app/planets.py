@@ -1,4 +1,5 @@
 import traceback
+from copy import copy
 
 import ephem
 from datetime import date, datetime, timedelta
@@ -12,7 +13,6 @@ class Planet(object):
     ephem = None
     last_ecliptic = None
     ecliptic = None
-    is_reverse = False
     update_speed = 0
 
     _current_update_value = 0
@@ -31,13 +31,21 @@ class Planet(object):
 
     def compute(self, observer: Observer, force=False):
         if self._current_update_value <= 0:
+            self.last_ecliptic = copy(self.ecliptic)
+
             self._current_update_value = self.update_speed
             self.ephem.compute(observer)
-            self.ecliptic = ephem.Ecliptic(self.ephem)
-            self.is_reverse = self.ecliptic.lon - self.last_ecliptic.lon < 0 if self.last_ecliptic else False
-            self.last_ecliptic = self.ecliptic
+            if not self.ecliptic:
+                self.ecliptic = ephem.Ecliptic(self.ephem)
+            else:
+                self.ecliptic.from_radec(self.ephem.ra, self.ephem.dec)
+
         else:
             self._current_update_value -= 1
+
+    @property
+    def is_reverse(self):
+        return self.last_ecliptic and self.ecliptic.lon - self.last_ecliptic.lon < 0
 
     def get_day(self):
         return None
@@ -112,35 +120,26 @@ class Moon(Planet):
 
     def update_day_info_simple(self, observer: Observer, force=False):
         # calculate day only if we outside of previously computed period
-        if not force and self.day_info['start'] and self.day_info['end'] \
-                and self.day_info['start'] < observer.date.datetime() < self.day_info['end']:
-            pass
-        else:
-            obs = observer.copy()
-            dt = observer.date
-
-            print((self.day_info['start'], observer.date.datetime(),self.day_info['end']))
-
-            date_start = ephem.previous_new_moon(obs.date)
-            date_next_new_moon = ephem.next_new_moon(obs.date)
-            self.day_info['next_new_moon'] = date_next_new_moon.datetime()
-            self.day_info['current_time'] = dt.datetime()
-
-            last_day = date_start
-            for i in range(1, 30):
-                obs.date = last_day
-                day_end = obs.next_rising(self.ephem, last_day, True)
-                if last_day <= dt <= day_end:
-                    self.day_info['number'] = i
-                    self.day_info['start'] = last_day.datetime()
-                    self.day_info['end'] = day_end.datetime()
-                    break
-                last_day = day_end
-
-    def update_day_info_twelve(self, observer: Observer):
         obs = observer.copy()
         dt = observer.date
 
+        date_start = ephem.previous_new_moon(obs.date)
+        date_next_new_moon = ephem.next_new_moon(obs.date)
+        self.day_info['next_new_moon'] = date_next_new_moon.datetime()
+        self.day_info['current_time'] = dt.datetime()
+
+        last_day = date_start
+        for i in range(1, 30):
+            obs.date = last_day
+            day_end = obs.next_rising(self.ephem, last_day, True)
+            if last_day <= dt <= day_end:
+                self.day_info['number'] = i
+                self.day_info['start'] = last_day.datetime()
+                self.day_info['end'] = day_end.datetime()
+                break
+            last_day = day_end
+
+    def update_day_info_twelve(self, observer: Observer):
         sun = ephem.Sun()
         sun.compute(observer)
         sun_ecliptic = ephem.Ecliptic(sun)
@@ -157,10 +156,14 @@ class Moon(Planet):
         force = kwargs.get('force', False)
 
         try:
-            if self.use_twelve_algorithm:
-                self.update_day_info_twelve(observer)
+            if not force and self.day_info['start'] and self.day_info['end'] \
+                    and self.day_info['start'] < observer.date.datetime() < self.day_info['end']:
+                pass
             else:
-                self.update_day_info_simple(observer, force)
+                if self.use_twelve_algorithm:
+                    self.update_day_info_twelve(observer)
+                else:
+                    self.update_day_info_simple(observer, force)
         except Exception as exc:
             traceback.print_exc()
 
@@ -170,39 +173,31 @@ class Moon(Planet):
 
 class Mars(Planet):
     update_speed = 4
-    pass
 
 
 class Jupiter(Planet):
     update_speed = 4
-    pass
 
 
 class Saturn(Planet):
     update_speed = 4
-    pass
 
 
 class Mercury(Planet):
     update_speed = 4
-    pass
 
 
 class Pluto(Planet):
     update_speed = 4
-    pass
 
 
 class Neptune(Planet):
     update_speed = 4
-    pass
 
 
 class Uranus(Planet):
     update_speed = 4
-    pass
 
 
 class Venus(Planet):
     update_speed = 4
-    pass
