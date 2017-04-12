@@ -71,6 +71,8 @@
   import _ from 'lodash'
   moment.locale(navigator.language)
 
+  const RECALCULATE_TIMEOUT = 2000
+
   export default {
     name: 'natal',
     data () {
@@ -169,6 +171,17 @@
 
 //      self.initMap()
       setConnection()
+
+      function requestData () {
+        if (self.socket && self.socket.readyState === 1) {
+          self.socket.send(JSON.stringify({
+            'type': 'recalculate'
+          }))
+        }
+        setTimeout(requestData, RECALCULATE_TIMEOUT)
+      }
+
+      setTimeout(requestData, RECALCULATE_TIMEOUT)
     },
     beforeDestroy () {
       window.removeEventListener('resize', this.resize)

@@ -62,8 +62,6 @@ class ObjectsPositionView(web.View):
                     await self.ws.send_str(msg)
             except Exception:
                 traceback.print_exc()
-            await sleep(2)
-            asyncio.ensure_future(self.compute_positions())
 
     async def set_location(self, lat, lon):
         self.lat = lat
@@ -86,9 +84,10 @@ class ObjectsPositionView(web.View):
                     else:
                         try:
                             data = json.loads(msg.data)
-                            print(data)
                             if data['type'] == 'set_location':
                                 await self.set_location(**data['data'])
+                            elif data['type'] == 'recalculate':
+                                await self.compute_positions()
                         except Exception as ex:
                             traceback.print_exc()
                 elif msg.type == aiohttp.WSMsgType.ERROR:
