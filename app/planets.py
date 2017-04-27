@@ -16,6 +16,7 @@ class Planet(object):
     update_speed = 0
 
     _current_update_value = 0
+    _updates_counter = 0
 
     def __init__(self):
         if self.name is None:
@@ -30,7 +31,7 @@ class Planet(object):
         return self.ephem or getattr(ephem, self.name.capitalize())()
 
     def compute(self, observer: Observer, force=False):
-        if self._current_update_value <= 0:
+        if self._updates_counter <= 2 or self._current_update_value <= 0:
             self.last_ecliptic = copy(self.ecliptic)
 
             self._current_update_value = self.update_speed
@@ -39,7 +40,7 @@ class Planet(object):
                 self.ecliptic = ephem.Ecliptic(self.ephem)
             else:
                 self.ecliptic.from_radec(self.ephem.ra, self.ephem.dec)
-
+            self._updates_counter += 1
         else:
             self._current_update_value -= 1
 

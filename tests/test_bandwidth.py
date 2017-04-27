@@ -41,5 +41,5 @@ def run_session(i):
     browser.quit()
 
 if __name__ == '__main__':
-    pool = Pool(100)
-    pool.map(run_session, range(100))
+    pool = Pool(50)
+    pool.map(run_session, range(50))

@@ -99,3 +99,7 @@ class TestMoon(object):
         for i in range(10000):
             moon.compute(observer)
             assert moon.get_day()['number'] == 7, (moon.get_day()['number'], 7)
+
+    def test_moon(self,  observer: Observer, moon: Moon):
+        moon.compute(observer)
+        print(moon)
